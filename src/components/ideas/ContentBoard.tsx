@@ -9,7 +9,7 @@ import { Plus } from 'lucide-react';
 
 const COLUMNS: { status: BoardStatus; label: string; headerColor: string; bgColor: string }[] = [
   { status: 'idea', label: 'IDEA', headerColor: 'bg-zinc-600', bgColor: 'bg-zinc-500/5' },
-  { status: 'in_progress', label: 'IN PROGRESS', headerColor: 'bg-violet-600', bgColor: 'bg-violet-500/5' },
+  { status: 'in_progress', label: 'IN PROGRESS', headerColor: 'bg-violet-600', bgColor: 'bg-violet-50' },
   { status: 'pending', label: 'PENDING', headerColor: 'bg-rose-600', bgColor: 'bg-rose-500/5' },
   { status: 'approved', label: 'APPROVED', headerColor: 'bg-emerald-600', bgColor: 'bg-emerald-500/5' },
 ];
@@ -71,7 +71,7 @@ export function ContentBoard() {
           >
             <div className={`${col.headerColor} rounded-t-xl px-4 py-2 flex items-center justify-between`}>
               <span className="text-xs font-bold text-white tracking-wider">{col.label}</span>
-              <span className="text-xs text-white/70">{columnItems.length}</span>
+              <span className="text-xs text-white/90">{columnItems.length}</span>
             </div>
             <div className="p-3 space-y-3 min-h-[200px]">
               {columnItems.map(item => (
@@ -84,7 +84,7 @@ export function ContentBoard() {
               ))}
               <button
                 onClick={() => openCreate(col.status)}
-                className="w-full flex items-center justify-center gap-1.5 py-2 text-xs text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 rounded-lg transition-colors"
+                className="w-full flex items-center justify-center gap-1.5 py-2 text-xs text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" /> Create Content
               </button>

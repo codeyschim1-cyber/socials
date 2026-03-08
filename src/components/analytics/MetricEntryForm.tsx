@@ -93,8 +93,8 @@ export function MetricEntryForm({ isOpen, onClose, onSave }: MetricEntryFormProp
         </div>
 
         <div className="bg-surface-elevated rounded-lg p-3">
-          <p className="text-xs text-zinc-500">Calculated Engagement Rate</p>
-          <p className="text-lg font-bold text-violet-400">{previewEngagement}%</p>
+          <p className="text-xs text-zinc-400">Calculated Engagement Rate</p>
+          <p className="text-lg font-bold text-violet-600">{previewEngagement}%</p>
         </div>
 
         <div className="flex justify-end gap-3 pt-2">

@@ -5,9 +5,9 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variants = {
   primary: 'bg-violet-600 hover:bg-violet-700 text-white',
-  secondary: 'bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700',
-  danger: 'bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-800/50',
-  ghost: 'hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200',
+  secondary: 'bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border border-zinc-300',
+  danger: 'bg-red-100 hover:bg-red-200 text-red-600 border border-red-300',
+  ghost: 'hover:bg-zinc-100 text-zinc-400 hover:text-zinc-800',
 };
 
 const sizes = {

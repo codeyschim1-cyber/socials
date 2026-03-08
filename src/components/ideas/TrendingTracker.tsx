@@ -51,19 +51,19 @@ export function TrendingTracker() {
 
       {activeTopics.length > 0 && (
         <div className="mb-6">
-          <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Active Trends</h3>
+          <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">Active Trends</h3>
           <div className="space-y-2">
             {activeTopics.map(t => (
-              <div key={t.id} className="flex items-center justify-between bg-surface-card border border-zinc-800 rounded-lg px-4 py-3">
+              <div key={t.id} className="flex items-center justify-between bg-surface-card border border-zinc-200 rounded-lg px-4 py-3">
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                  <span className="text-sm font-medium text-zinc-200">{t.topic}</span>
+                  <span className="text-sm font-medium text-zinc-800">{t.topic}</span>
                   <PlatformBadge platform={t.platform} />
-                  {t.notes && <span className="text-xs text-zinc-500">{t.notes}</span>}
+                  {t.notes && <span className="text-xs text-zinc-400">{t.notes}</span>}
                 </div>
                 <div className="flex gap-1">
                   <Button variant="ghost" size="sm" onClick={() => updateTopic(t.id, { isActive: false })}>Archive</Button>
-                  <button onClick={() => deleteTopic(t.id)} className="p-1.5 text-zinc-600 hover:text-red-400 transition-colors">
+                  <button onClick={() => deleteTopic(t.id)} className="p-1.5 text-zinc-400 hover:text-red-600 transition-colors">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
@@ -75,16 +75,16 @@ export function TrendingTracker() {
 
       {pastTopics.length > 0 && (
         <div>
-          <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Past Trends</h3>
+          <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">Past Trends</h3>
           <div className="space-y-2">
             {pastTopics.map(t => (
-              <div key={t.id} className="flex items-center justify-between bg-surface-card border border-zinc-800/50 rounded-lg px-4 py-3 opacity-60">
+              <div key={t.id} className="flex items-center justify-between bg-surface-card border border-zinc-200/50 rounded-lg px-4 py-3 opacity-60">
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full bg-zinc-600" />
                   <span className="text-sm text-zinc-400">{t.topic}</span>
                   <PlatformBadge platform={t.platform} />
                 </div>
-                <button onClick={() => deleteTopic(t.id)} className="p-1.5 text-zinc-600 hover:text-red-400 transition-colors">
+                <button onClick={() => deleteTopic(t.id)} className="p-1.5 text-zinc-400 hover:text-red-600 transition-colors">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>

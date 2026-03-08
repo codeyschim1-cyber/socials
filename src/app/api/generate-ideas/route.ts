@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
-  const { apiKey, notes, contentContext, platforms, niche, inspirationCreators, creatorBio } = await req.json();
+  const { apiKey, notes, contentContext, platforms, niche, inspirationCreators, creatorBio, performanceData } = await req.json();
 
   if (!apiKey) {
     return NextResponse.json({ error: 'API key is required' }, { status: 400 });
@@ -20,12 +20,16 @@ export async function POST(req: NextRequest) {
 
   const bioSection = creatorBio ? `\n- Bio: ${creatorBio}` : '';
 
+  const performanceSection = performanceData
+    ? `\n\nPerformance data: The creator's best performing platform is ${performanceData.topPlatform} with ${performanceData.engagementRate}% engagement rate. Weight your suggestions toward this platform and similar content styles that have historically performed well.`
+    : '';
+
   const prompt = `You are a social media content strategist specializing in the vintage fashion, thrifting, and menswear niche. Generate 5 creative content ideas for a creator.
 
 Creator info:
 - Platforms: ${platforms || 'Instagram, TikTok, YouTube, Facebook'}
 - Niche/topics: ${niche || 'general'}${bioSection}
-${contextSection}${inspirationSection}
+${contextSection}${inspirationSection}${performanceSection}
 
 The creator's notes/request: "${notes}"
 

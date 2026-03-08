@@ -22,7 +22,7 @@ export function CalendarDay({ date, currentMonth, posts, events = [], onPostClic
   return (
     <div
       onClick={() => onDayClick(date)}
-      className={`min-h-[100px] p-1.5 border border-zinc-800/50 cursor-pointer hover:bg-zinc-800/30 transition-colors ${
+      className={`min-h-[100px] p-1.5 border border-zinc-200/50 cursor-pointer hover:bg-zinc-100/30 transition-colors ${
         !isCurrentMonth ? 'opacity-30' : ''
       }`}
     >
@@ -39,7 +39,7 @@ export function CalendarDay({ date, currentMonth, posts, events = [], onPostClic
           <EventCard key={inst.event.id} instance={inst} compact />
         ))}
         {totalItems > maxVisible && (
-          <p className="text-[10px] text-zinc-500 px-1">+{totalItems - maxVisible} more</p>
+          <p className="text-[10px] text-zinc-400 px-1">+{totalItems - maxVisible} more</p>
         )}
       </div>
     </div>

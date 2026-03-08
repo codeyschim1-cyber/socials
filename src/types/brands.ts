@@ -14,8 +14,17 @@ export interface BrandDeal {
   currency: string;
   deadline?: string;
   notes: string;
+  results?: DealResults;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface DealResults {
+  views: number;
+  impressions: number;
+  clicks: number;
+  saves: number;
+  reach: number;
 }
 
 export interface IncomeEntry {

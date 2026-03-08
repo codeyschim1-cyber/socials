@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-surface: #09090b;
-  --color-surface-card: #18181b;
-  --color-surface-elevated: #27272a;
-  --color-surface-hover: #3f3f46;
+  --color-surface: #f8f9fa;
+  --color-surface-card: #ffffff;
+  --color-surface-elevated: #f1f3f5;
+  --color-surface-hover: #e9ecef;
   --color-accent-ig: #E1306C;
   --color-accent-tt: #00f2ea;
   --font-sans: var(--font-geist-sans);
@@ -13,7 +13,7 @@
 
 body {
   background: var(--color-surface);
-  color: #fafafa;
+  color: #1a1a1a;
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
@@ -26,11 +26,11 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #3f3f46;
+  background: #ced4da;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #52525b;
+  background: #adb5bd;
 }
 
 /* Calendar grid */

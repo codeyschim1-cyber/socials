@@ -61,7 +61,7 @@ export function ContentLibrary() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-zinc-400">
           {entries.length} piece{entries.length !== 1 ? 's' : ''} of content saved. AI uses this to understand your style.
         </p>
         <Button size="sm" onClick={() => setIsFormOpen(true)}><Plus className="w-4 h-4" /> Add Content</Button>
@@ -69,23 +69,23 @@ export function ContentLibrary() {
 
       <div className="space-y-2">
         {entries.sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map(entry => (
-          <div key={entry.id} className="flex items-center justify-between bg-surface-card border border-zinc-800 rounded-lg px-4 py-3">
+          <div key={entry.id} className="flex items-center justify-between bg-surface-card border border-zinc-200 rounded-lg px-4 py-3">
             <div className="flex items-center gap-3 min-w-0 flex-1">
               <PlatformBadge platform={entry.platform} />
-              <span className="text-xs text-zinc-600 bg-zinc-800 px-1.5 py-0.5 rounded">{TYPE_LABELS[entry.type]}</span>
+              <span className="text-xs text-zinc-400 bg-zinc-100 px-1.5 py-0.5 rounded">{TYPE_LABELS[entry.type]}</span>
               <div className="min-w-0 flex-1">
-                <p className="text-sm text-zinc-200 truncate">{entry.title}</p>
-                {entry.notes && <p className="text-xs text-zinc-500 truncate">{entry.notes}</p>}
+                <p className="text-sm text-zinc-800 truncate">{entry.title}</p>
+                {entry.notes && <p className="text-xs text-zinc-400 truncate">{entry.notes}</p>}
               </div>
             </div>
             <div className="flex items-center gap-1 shrink-0">
-              {entry.performance && <span className="text-xs text-emerald-400 mr-2">{entry.performance}</span>}
+              {entry.performance && <span className="text-xs text-emerald-600 mr-2">{entry.performance}</span>}
               {entry.url && (
-                <a href={entry.url} target="_blank" rel="noopener noreferrer" className="p-1.5 text-zinc-500 hover:text-violet-400 transition-colors">
+                <a href={entry.url} target="_blank" rel="noopener noreferrer" className="p-1.5 text-zinc-400 hover:text-violet-600 transition-colors">
                   <ExternalLink className="w-4 h-4" />
                 </a>
               )}
-              <button onClick={() => deleteEntry(entry.id)} className="p-1.5 text-zinc-600 hover:text-red-400 transition-colors">
+              <button onClick={() => deleteEntry(entry.id)} className="p-1.5 text-zinc-400 hover:text-red-600 transition-colors">
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>

@@ -18,12 +18,13 @@ import {
   Lightbulb, Handshake, ArrowUpRight, Sparkles
 } from 'lucide-react';
 import Link from 'next/link';
+import { MilestoneWidget } from './MilestoneWidget';
 
 const PLATFORMS = [
-  { key: 'instagram' as const, label: 'Instagram', color: 'text-pink-400' },
-  { key: 'tiktok' as const, label: 'TikTok', color: 'text-teal-400' },
-  { key: 'youtube' as const, label: 'YouTube', color: 'text-red-400' },
-  { key: 'facebook' as const, label: 'Facebook', color: 'text-blue-400' },
+  { key: 'instagram' as const, label: 'Instagram', color: 'text-pink-600' },
+  { key: 'tiktok' as const, label: 'TikTok', color: 'text-teal-600' },
+  { key: 'youtube' as const, label: 'YouTube', color: 'text-red-600' },
+  { key: 'facebook' as const, label: 'Facebook', color: 'text-blue-600' },
 ];
 
 export function DashboardOverview() {
@@ -76,10 +77,10 @@ export function DashboardOverview() {
     <div className="space-y-6">
       {/* Welcome */}
       <div className="flex items-center gap-3">
-        <Sparkles className="w-6 h-6 text-violet-400" />
+        <Sparkles className="w-6 h-6 text-violet-600" />
         <div>
-          <h2 className="text-xl font-bold text-zinc-100">Welcome back</h2>
-          <p className="text-sm text-zinc-500">Here&apos;s your creator overview for today</p>
+          <h2 className="text-xl font-bold text-zinc-900">Welcome back</h2>
+          <p className="text-sm text-zinc-400">Here&apos;s your creator overview for today</p>
         </div>
       </div>
 
@@ -111,7 +112,7 @@ export function DashboardOverview() {
             <Card key={p.key}>
               <div className="flex items-center gap-2 mb-2">
                 <Users className={`w-4 h-4 ${p.color}`} />
-                <span className="text-xs text-zinc-500">{p.label}</span>
+                <span className="text-xs text-zinc-400">{p.label}</span>
               </div>
               {isEditing ? (
                 <input
@@ -121,11 +122,11 @@ export function DashboardOverview() {
                   onChange={e => setEditValue(e.target.value)}
                   onBlur={handleSave}
                   onKeyDown={e => { if (e.key === 'Enter') handleSave(); if (e.key === 'Escape') setEditingPlatform(null); }}
-                  className="w-full text-2xl font-bold bg-zinc-800 border border-violet-500 rounded px-2 py-0.5 text-zinc-100 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  className="w-full text-2xl font-bold bg-zinc-100 border border-violet-500 rounded px-2 py-0.5 text-zinc-900 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
               ) : (
                 <p
-                  className="text-2xl font-bold text-zinc-100 cursor-pointer hover:text-violet-400 transition-colors"
+                  className="text-2xl font-bold text-zinc-900 cursor-pointer hover:text-violet-600 transition-colors"
                   title="Click to edit"
                   onClick={() => { setEditingPlatform(p.key); setEditValue(latest?.followers?.toString() ?? ''); }}
                 >
@@ -133,7 +134,7 @@ export function DashboardOverview() {
                 </p>
               )}
               {latest?.engagementRate != null && (
-                <p className="text-xs text-emerald-400 mt-1 flex items-center gap-1">
+                <p className="text-xs text-emerald-600 mt-1 flex items-center gap-1">
                   <ArrowUpRight className="w-3 h-3" />{latest.engagementRate}% eng.
                 </p>
               )}
@@ -146,37 +147,40 @@ export function DashboardOverview() {
       <div className="grid grid-cols-2 gap-4">
         <Card>
           <div className="flex items-center gap-2 mb-2">
-            <DollarSign className="w-4 h-4 text-emerald-400" />
-            <span className="text-xs text-zinc-500">This Month</span>
+            <DollarSign className="w-4 h-4 text-emerald-600" />
+            <span className="text-xs text-zinc-400">This Month</span>
           </div>
-          <p className="text-2xl font-bold text-emerald-400">${monthlyRevenue.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-emerald-600">${monthlyRevenue.toLocaleString()}</p>
           {currentGoal && (
             <div className="mt-2">
-              <div className="w-full bg-zinc-800 rounded-full h-1.5">
+              <div className="w-full bg-zinc-100 rounded-full h-1.5">
                 <div className="bg-violet-500 h-1.5 rounded-full" style={{ width: `${Math.min(getGoalProgress(incomeEntries, currentGoal), 100)}%` }} />
               </div>
-              <p className="text-[10px] text-zinc-600 mt-1">{Math.round(getGoalProgress(incomeEntries, currentGoal))}% of ${currentGoal.targetAmount.toLocaleString()}</p>
+              <p className="text-[10px] text-zinc-400 mt-1">{Math.round(getGoalProgress(incomeEntries, currentGoal))}% of ${currentGoal.targetAmount.toLocaleString()}</p>
             </div>
           )}
         </Card>
         <Card>
           <div className="flex items-center gap-2 mb-2">
-            <Handshake className="w-4 h-4 text-violet-400" />
-            <span className="text-xs text-zinc-500">Active Deals</span>
+            <Handshake className="w-4 h-4 text-violet-600" />
+            <span className="text-xs text-zinc-400">Active Deals</span>
           </div>
-          <p className="text-2xl font-bold text-zinc-100">{activeDeals.length}</p>
-          <p className="text-xs text-zinc-500 mt-1">${activeDeals.reduce((s, d) => s + d.rate, 0).toLocaleString()} pipeline</p>
+          <p className="text-2xl font-bold text-zinc-900">{activeDeals.length}</p>
+          <p className="text-xs text-zinc-400 mt-1">${activeDeals.reduce((s, d) => s + d.rate, 0).toLocaleString()} pipeline</p>
         </Card>
       </div>
+
+      {/* Milestone widget */}
+      <MilestoneWidget />
 
       <div className="grid md:grid-cols-2 gap-4">
         {/* Growth chart */}
         <Card>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-zinc-200 flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-violet-400" /> Follower Growth
+            <h3 className="text-sm font-semibold text-zinc-800 flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-violet-600" /> Follower Growth
             </h3>
-            <Link href="/analytics" className="text-xs text-violet-400 hover:text-violet-300 transition-colors">View All</Link>
+            <Link href="/analytics" className="text-xs text-violet-600 hover:text-violet-500 transition-colors">View All</Link>
           </div>
           {growthData.length > 1 ? (
             <LineChartWrapper
@@ -186,8 +190,8 @@ export function DashboardOverview() {
               height={200}
             />
           ) : (
-            <div className="flex items-center justify-center h-[200px] text-sm text-zinc-600">
-              <Link href="/analytics" className="hover:text-zinc-400 transition-colors">Add analytics data to see trends</Link>
+            <div className="flex items-center justify-center h-[200px] text-sm text-zinc-400">
+              <Link href="/analytics" className="hover:text-zinc-500 transition-colors">Add analytics data to see trends</Link>
             </div>
           )}
         </Card>
@@ -195,10 +199,10 @@ export function DashboardOverview() {
         {/* Upcoming posts */}
         <Card>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-zinc-200 flex items-center gap-2">
-              <CalendarDays className="w-4 h-4 text-violet-400" /> Upcoming Posts
+            <h3 className="text-sm font-semibold text-zinc-800 flex items-center gap-2">
+              <CalendarDays className="w-4 h-4 text-violet-600" /> Upcoming Posts
             </h3>
-            <Link href="/calendar" className="text-xs text-violet-400 hover:text-violet-300 transition-colors">View Calendar</Link>
+            <Link href="/calendar" className="text-xs text-violet-600 hover:text-violet-500 transition-colors">View Calendar</Link>
           </div>
           {upcomingPosts.length > 0 ? (
             <div className="space-y-2">
@@ -206,20 +210,20 @@ export function DashboardOverview() {
                 <div key={post.id} className="flex items-center justify-between bg-surface-elevated rounded-lg px-3 py-2">
                   <div className="flex items-center gap-2 min-w-0">
                     <PlatformBadge platform={post.platform} />
-                    <span className="text-sm text-zinc-200 truncate">{post.title}</span>
+                    <span className="text-sm text-zinc-800 truncate">{post.title}</span>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <Badge className={`${STATUS_COLORS[post.status].bg} ${STATUS_COLORS[post.status].text}`}>
                       {STATUS_LABELS[post.status]}
                     </Badge>
-                    <span className="text-xs text-zinc-500">{format(parseISO(post.scheduledDate), 'MMM d')}</span>
+                    <span className="text-xs text-zinc-400">{format(parseISO(post.scheduledDate), 'MMM d')}</span>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="flex items-center justify-center h-[140px] text-sm text-zinc-600">
-              <Link href="/calendar" className="hover:text-zinc-400 transition-colors">Plan your first post</Link>
+            <div className="flex items-center justify-center h-[140px] text-sm text-zinc-400">
+              <Link href="/calendar" className="hover:text-zinc-500 transition-colors">Plan your first post</Link>
             </div>
           )}
         </Card>
@@ -229,10 +233,10 @@ export function DashboardOverview() {
         {/* Recent ideas */}
         <Card>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-zinc-200 flex items-center gap-2">
-              <Lightbulb className="w-4 h-4 text-violet-400" /> Recent Ideas
+            <h3 className="text-sm font-semibold text-zinc-800 flex items-center gap-2">
+              <Lightbulb className="w-4 h-4 text-violet-600" /> Recent Ideas
             </h3>
-            <Link href="/ideas" className="text-xs text-violet-400 hover:text-violet-300 transition-colors">View All</Link>
+            <Link href="/ideas" className="text-xs text-violet-600 hover:text-violet-500 transition-colors">View All</Link>
           </div>
           {recentIdeas.length > 0 ? (
             <div className="space-y-2">
@@ -242,15 +246,15 @@ export function DashboardOverview() {
                     <Badge className={IDEA_CATEGORIES[idea.category].color}>
                       {IDEA_CATEGORIES[idea.category].label}
                     </Badge>
-                    <span className="text-sm text-zinc-200 truncate">{idea.title}</span>
+                    <span className="text-sm text-zinc-800 truncate">{idea.title}</span>
                   </div>
                   <PlatformBadge platform={idea.platform} />
                 </div>
               ))}
             </div>
           ) : (
-            <div className="flex items-center justify-center h-[140px] text-sm text-zinc-600">
-              <Link href="/ideas" className="hover:text-zinc-400 transition-colors">Start brainstorming ideas</Link>
+            <div className="flex items-center justify-center h-[140px] text-sm text-zinc-400">
+              <Link href="/ideas" className="hover:text-zinc-500 transition-colors">Start brainstorming ideas</Link>
             </div>
           )}
         </Card>
@@ -258,30 +262,30 @@ export function DashboardOverview() {
         {/* Active deals */}
         <Card>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-zinc-200 flex items-center gap-2">
-              <Handshake className="w-4 h-4 text-violet-400" /> Active Deals
+            <h3 className="text-sm font-semibold text-zinc-800 flex items-center gap-2">
+              <Handshake className="w-4 h-4 text-violet-600" /> Active Deals
             </h3>
-            <Link href="/brands" className="text-xs text-violet-400 hover:text-violet-300 transition-colors">View Pipeline</Link>
+            <Link href="/brands" className="text-xs text-violet-600 hover:text-violet-500 transition-colors">View Pipeline</Link>
           </div>
           {activeDeals.length > 0 ? (
             <div className="space-y-2">
               {activeDeals.slice(0, 5).map(deal => (
                 <div key={deal.id} className="flex items-center justify-between bg-surface-elevated rounded-lg px-3 py-2">
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-sm text-zinc-200 truncate">{deal.brandName}</span>
+                    <span className="text-sm text-zinc-800 truncate">{deal.brandName}</span>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <Badge className={`${DEAL_STATUS_COLORS[deal.status].bg} ${DEAL_STATUS_COLORS[deal.status].text}`}>
                       {DEAL_STATUS_LABELS[deal.status]}
                     </Badge>
-                    <span className="text-sm font-medium text-emerald-400">${deal.rate.toLocaleString()}</span>
+                    <span className="text-sm font-medium text-emerald-600">${deal.rate.toLocaleString()}</span>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="flex items-center justify-center h-[140px] text-sm text-zinc-600">
-              <Link href="/brands" className="hover:text-zinc-400 transition-colors">Start tracking brand deals</Link>
+            <div className="flex items-center justify-center h-[140px] text-sm text-zinc-400">
+              <Link href="/brands" className="hover:text-zinc-500 transition-colors">Start tracking brand deals</Link>
             </div>
           )}
         </Card>

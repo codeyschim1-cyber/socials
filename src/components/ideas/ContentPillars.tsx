@@ -120,7 +120,7 @@ export function ContentPillars({ onAddIdea }: ContentPillarsProps) {
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: pillar.color }} />
-                    <h3 className="text-sm font-semibold text-zinc-200">{pillar.name}</h3>
+                    <h3 className="text-sm font-semibold text-zinc-800">{pillar.name}</h3>
                   </div>
                   <div className="flex items-center gap-2">
                     {apiKey && (
@@ -133,19 +133,19 @@ export function ContentPillars({ onAddIdea }: ContentPillarsProps) {
                         {isGenerating ? (
                           <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Generating...</>
                         ) : (
-                          <><Sparkles className="w-3.5 h-3.5 text-violet-400" /> Generate Ideas</>
+                          <><Sparkles className="w-3.5 h-3.5 text-violet-600" /> Generate Ideas</>
                         )}
                       </Button>
                     )}
-                    <button onClick={() => deletePillar(pillar.id)} className="text-zinc-600 hover:text-red-400 transition-colors">
+                    <button onClick={() => deletePillar(pillar.id)} className="text-zinc-400 hover:text-red-600 transition-colors">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
-                {pillar.description && <p className="text-xs text-zinc-500 mb-2">{pillar.description}</p>}
-                <p className="text-xs text-zinc-600">{linkedIdeas} linked idea{linkedIdeas !== 1 ? 's' : ''}</p>
+                {pillar.description && <p className="text-xs text-zinc-400 mb-2">{pillar.description}</p>}
+                <p className="text-xs text-zinc-400">{linkedIdeas} linked idea{linkedIdeas !== 1 ? 's' : ''}</p>
 
-                {error && <p className="text-xs text-red-400 mt-2">{error}</p>}
+                {error && <p className="text-xs text-red-600 mt-2">{error}</p>}
               </Card>
 
               {/* Generated ideas for this pillar */}
@@ -164,8 +164,8 @@ export function ContentPillars({ onAddIdea }: ContentPillarsProps) {
                               <Badge className={`text-[10px] ${catColors.color}`}>{catColors.label}</Badge>
                               <Badge className={`text-[10px] ${platColors.badge}`}>{PLATFORM_SHORT_LABELS[idea.platform] || 'All'}</Badge>
                             </div>
-                            <h4 className="text-xs font-medium text-zinc-200">{idea.title}</h4>
-                            <p className="text-[11px] text-zinc-500 mt-0.5">{idea.description}</p>
+                            <h4 className="text-xs font-medium text-zinc-800">{idea.title}</h4>
+                            <p className="text-[11px] text-zinc-400 mt-0.5">{idea.description}</p>
                           </div>
                           {onAddIdea && (
                             <Button
@@ -174,7 +174,7 @@ export function ContentPillars({ onAddIdea }: ContentPillarsProps) {
                               onClick={() => handleAddPillarIdea(pillar.id, idea, i)}
                               disabled={added}
                             >
-                              {added ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Plus className="w-3.5 h-3.5" />}
+                              {added ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Plus className="w-3.5 h-3.5" />}
                             </Button>
                           )}
                         </div>

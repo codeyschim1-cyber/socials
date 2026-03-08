@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useMediaKit } from '@/hooks/useMediaKit';
+import { useAnalytics } from '@/hooks/useAnalytics';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -12,6 +13,7 @@ import { Save, User, AtSign, MapPin, Globe, Mail, DollarSign, Building2, Plus, X
 
 export function MediaKitEditor() {
   const { mediaKit, updateMediaKit } = useMediaKit();
+  const { entries: analyticsEntries } = useAnalytics();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState(mediaKit);
   const [newNiche, setNewNiche] = useState('');
@@ -19,6 +21,43 @@ export function MediaKitEditor() {
   const [newCreatorHandle, setNewCreatorHandle] = useState('');
   const [newCreatorPlatform, setNewCreatorPlatform] = useState('');
   const [newCreatorNote, setNewCreatorNote] = useState('');
+
+  // Pull latest analytics data per platform for auto-sync
+  const liveStats = useMemo(() => {
+    const getLatest = (platform: string) => {
+      const platformEntries = analyticsEntries
+        .filter(e => e.platform === platform)
+        .sort((a, b) => b.date.localeCompare(a.date));
+      return platformEntries[0] || null;
+    };
+    return {
+      instagram: getLatest('instagram'),
+      tiktok: getLatest('tiktok'),
+      youtube: getLatest('youtube'),
+      facebook: getLatest('facebook'),
+    };
+  }, [analyticsEntries]);
+
+  // Helper: use live data if available, otherwise fall back to mediaKit values
+  const getStat = (platform: 'instagram' | 'tiktok' | 'youtube' | 'facebook', field: 'followers' | 'engagementRate') => {
+    const entry = liveStats[platform];
+    if (entry) {
+      if (field === 'followers') return entry.followers;
+      if (field === 'engagementRate') return entry.engagementRate ?? 0;
+    }
+    // Fallback to media kit values
+    const map: Record<string, number> = {
+      'instagram-followers': mediaKit.instagramFollowers,
+      'instagram-engagementRate': mediaKit.instagramEngagementRate,
+      'tiktok-followers': mediaKit.tiktokFollowers,
+      'tiktok-engagementRate': mediaKit.tiktokEngagementRate,
+      'youtube-followers': mediaKit.youtubeSubscribers,
+      'youtube-engagementRate': mediaKit.youtubeEngagementRate,
+      'facebook-followers': mediaKit.facebookFollowers,
+      'facebook-engagementRate': mediaKit.facebookEngagementRate,
+    };
+    return map[`${platform}-${field}`] ?? 0;
+  };
 
   const startEditing = () => {
     setForm(mediaKit);
@@ -81,14 +120,14 @@ export function MediaKitEditor() {
               {mediaKit.displayName ? mediaKit.displayName.charAt(0).toUpperCase() : <User className="w-7 h-7" />}
             </div>
             <div className="flex-1">
-              <h2 className="text-xl font-bold text-zinc-100">{mediaKit.displayName || 'Your Name'}</h2>
+              <h2 className="text-xl font-bold text-zinc-900">{mediaKit.displayName || 'Your Name'}</h2>
               <p className="text-sm text-zinc-400 mt-1">{mediaKit.bio || 'Add a bio to tell brands about yourself'}</p>
               <div className="flex flex-wrap gap-2 mt-3">
                 {mediaKit.niche.map(n => (
-                  <Badge key={n} className="bg-violet-500/20 text-violet-400">{n}</Badge>
+                  <Badge key={n} className="bg-violet-100 text-violet-600">{n}</Badge>
                 ))}
               </div>
-              <div className="flex flex-wrap gap-4 mt-3 text-xs text-zinc-500">
+              <div className="flex flex-wrap gap-4 mt-3 text-xs text-zinc-400">
                 {mediaKit.email && <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{mediaKit.email}</span>}
                 {mediaKit.location && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{mediaKit.location}</span>}
                 {mediaKit.website && <span className="flex items-center gap-1"><Globe className="w-3 h-3" />{mediaKit.website}</span>}
@@ -97,45 +136,39 @@ export function MediaKitEditor() {
           </div>
         </Card>
 
-        {/* Stats */}
+        {/* Stats — auto-synced from analytics when available */}
         <div className="grid grid-cols-2 gap-4">
-          <Card className={`border ${PLATFORM_COLORS.instagram.border}`}>
-            <div className="flex items-center gap-2 mb-2">
-              <AtSign className={`w-4 h-4 ${PLATFORM_COLORS.instagram.text}`} />
-              <span className="text-sm text-zinc-300">{mediaKit.instagramHandle || '@handle'}</span>
-            </div>
-            <p className="text-2xl font-bold text-zinc-100">{mediaKit.instagramFollowers.toLocaleString()}</p>
-            <p className="text-xs text-zinc-500">followers &middot; {mediaKit.instagramEngagementRate}% eng.</p>
-          </Card>
-          <Card className={`border ${PLATFORM_COLORS.tiktok.border}`}>
-            <div className="flex items-center gap-2 mb-2">
-              <AtSign className={`w-4 h-4 ${PLATFORM_COLORS.tiktok.text}`} />
-              <span className="text-sm text-zinc-300">{mediaKit.tiktokHandle || '@handle'}</span>
-            </div>
-            <p className="text-2xl font-bold text-zinc-100">{mediaKit.tiktokFollowers.toLocaleString()}</p>
-            <p className="text-xs text-zinc-500">followers &middot; {mediaKit.tiktokEngagementRate}% eng.</p>
-          </Card>
-          <Card className={`border ${PLATFORM_COLORS.youtube.border}`}>
-            <div className="flex items-center gap-2 mb-2">
-              <AtSign className={`w-4 h-4 ${PLATFORM_COLORS.youtube.text}`} />
-              <span className="text-sm text-zinc-300">{mediaKit.youtubeHandle || '@handle'}</span>
-            </div>
-            <p className="text-2xl font-bold text-zinc-100">{mediaKit.youtubeSubscribers.toLocaleString()}</p>
-            <p className="text-xs text-zinc-500">subscribers &middot; {mediaKit.youtubeEngagementRate}% eng.</p>
-          </Card>
-          <Card className={`border ${PLATFORM_COLORS.facebook.border}`}>
-            <div className="flex items-center gap-2 mb-2">
-              <AtSign className={`w-4 h-4 ${PLATFORM_COLORS.facebook.text}`} />
-              <span className="text-sm text-zinc-300">{mediaKit.facebookHandle || '@handle'}</span>
-            </div>
-            <p className="text-2xl font-bold text-zinc-100">{mediaKit.facebookFollowers.toLocaleString()}</p>
-            <p className="text-xs text-zinc-500">followers &middot; {mediaKit.facebookEngagementRate}% eng.</p>
-          </Card>
+          {([
+            { key: 'instagram' as const, handle: mediaKit.instagramHandle, label: 'followers' },
+            { key: 'tiktok' as const, handle: mediaKit.tiktokHandle, label: 'followers' },
+            { key: 'youtube' as const, handle: mediaKit.youtubeHandle, label: 'subscribers' },
+            { key: 'facebook' as const, handle: mediaKit.facebookHandle, label: 'followers' },
+          ]).map(({ key, handle, label }) => {
+            const isLive = !!liveStats[key];
+            return (
+              <Card key={key} className={`border ${PLATFORM_COLORS[key].border}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <AtSign className={`w-4 h-4 ${PLATFORM_COLORS[key].text}`} />
+                    <span className="text-sm text-zinc-700">{handle || '@handle'}</span>
+                  </div>
+                  {isLive && (
+                    <span className="flex items-center gap-1 text-[10px] font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
+                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                      Live
+                    </span>
+                  )}
+                </div>
+                <p className="text-2xl font-bold text-zinc-900">{getStat(key, 'followers').toLocaleString()}</p>
+                <p className="text-xs text-zinc-400">{label} &middot; {getStat(key, 'engagementRate').toFixed(1)}% eng.</p>
+              </Card>
+            );
+          })}
         </div>
 
         {/* Rates */}
         <Card>
-          <h3 className="text-sm font-semibold text-zinc-200 mb-3 flex items-center gap-2"><DollarSign className="w-4 h-4 text-emerald-400" /> Rate Card</h3>
+          <h3 className="text-sm font-semibold text-zinc-800 mb-3 flex items-center gap-2"><DollarSign className="w-4 h-4 text-emerald-600" /> Rate Card</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
               { label: 'IG Post', value: mediaKit.rates.instagramPost },
@@ -148,15 +181,15 @@ export function MediaKitEditor() {
               { label: 'FB Reel', value: mediaKit.rates.facebookReel },
             ].map(r => (
               <div key={r.label} className="bg-surface-elevated rounded-lg p-3 text-center">
-                <p className="text-xs text-zinc-500 mb-1">{r.label}</p>
-                <p className="text-lg font-bold text-zinc-100">${r.value.toLocaleString()}</p>
+                <p className="text-xs text-zinc-400 mb-1">{r.label}</p>
+                <p className="text-lg font-bold text-zinc-900">${r.value.toLocaleString()}</p>
               </div>
             ))}
           </div>
           {mediaKit.rates.bundleRate && (
-            <div className="mt-3 bg-violet-500/10 rounded-lg p-3 text-center">
-              <p className="text-xs text-zinc-500 mb-1">Bundle Rate</p>
-              <p className="text-xl font-bold text-violet-400">${mediaKit.rates.bundleRate.toLocaleString()}</p>
+            <div className="mt-3 bg-violet-100 rounded-lg p-3 text-center">
+              <p className="text-xs text-zinc-400 mb-1">Bundle Rate</p>
+              <p className="text-xl font-bold text-violet-600">${mediaKit.rates.bundleRate.toLocaleString()}</p>
             </div>
           )}
         </Card>
@@ -164,10 +197,10 @@ export function MediaKitEditor() {
         {/* Past brands */}
         {mediaKit.pastBrands.length > 0 && (
           <Card>
-            <h3 className="text-sm font-semibold text-zinc-200 mb-3 flex items-center gap-2"><Building2 className="w-4 h-4 text-violet-400" /> Past Collaborations</h3>
+            <h3 className="text-sm font-semibold text-zinc-800 mb-3 flex items-center gap-2"><Building2 className="w-4 h-4 text-violet-600" /> Past Collaborations</h3>
             <div className="flex flex-wrap gap-2">
               {mediaKit.pastBrands.map(brand => (
-                <Badge key={brand} className="bg-zinc-800 text-zinc-300">{brand}</Badge>
+                <Badge key={brand} className="bg-zinc-100 text-zinc-700">{brand}</Badge>
               ))}
             </div>
           </Card>
@@ -176,14 +209,14 @@ export function MediaKitEditor() {
         {/* Inspiration Creators */}
         {mediaKit.inspirationCreators?.length > 0 && (
           <Card>
-            <h3 className="text-sm font-semibold text-zinc-200 mb-3 flex items-center gap-2"><Sparkles className="w-4 h-4 text-violet-400" /> Inspiration Creators</h3>
-            <p className="text-xs text-zinc-500 mb-3">AI uses these creators as style inspiration when generating ideas.</p>
+            <h3 className="text-sm font-semibold text-zinc-800 mb-3 flex items-center gap-2"><Sparkles className="w-4 h-4 text-violet-600" /> Inspiration Creators</h3>
+            <p className="text-xs text-zinc-400 mb-3">AI uses these creators as style inspiration when generating ideas.</p>
             <div className="space-y-2">
               {mediaKit.inspirationCreators.map((creator, i) => (
                 <div key={i} className="flex items-center gap-3 bg-surface-elevated rounded-lg px-3 py-2">
-                  <span className="text-sm font-medium text-violet-400">{creator.handle}</span>
-                  <span className="text-xs text-zinc-600 bg-zinc-800 px-1.5 py-0.5 rounded">{creator.platform}</span>
-                  {creator.note && <span className="text-xs text-zinc-500 flex-1 truncate">{creator.note}</span>}
+                  <span className="text-sm font-medium text-violet-600">{creator.handle}</span>
+                  <span className="text-xs text-zinc-400 bg-zinc-100 px-1.5 py-0.5 rounded">{creator.platform}</span>
+                  {creator.note && <span className="text-xs text-zinc-400 flex-1 truncate">{creator.note}</span>}
                 </div>
               ))}
             </div>
@@ -193,7 +226,7 @@ export function MediaKitEditor() {
         {/* Demographics */}
         {mediaKit.demographics && (
           <Card>
-            <h3 className="text-sm font-semibold text-zinc-200 mb-2">Audience Demographics</h3>
+            <h3 className="text-sm font-semibold text-zinc-800 mb-2">Audience Demographics</h3>
             <p className="text-sm text-zinc-400 whitespace-pre-wrap">{mediaKit.demographics}</p>
           </Card>
         )}
@@ -205,7 +238,7 @@ export function MediaKitEditor() {
   return (
     <div className="max-w-2xl space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-zinc-100">Edit Media Kit</h2>
+        <h2 className="text-lg font-semibold text-zinc-900">Edit Media Kit</h2>
         <div className="flex gap-2">
           <Button variant="secondary" size="sm" onClick={() => setEditing(false)}>Cancel</Button>
           <Button size="sm" onClick={handleSave}><Save className="w-4 h-4" /> Save</Button>
@@ -213,7 +246,7 @@ export function MediaKitEditor() {
       </div>
 
       <Card>
-        <h3 className="text-sm font-semibold text-zinc-300 mb-3">Profile</h3>
+        <h3 className="text-sm font-semibold text-zinc-700 mb-3">Profile</h3>
         <div className="space-y-3">
           <Input label="Display Name" value={form.displayName} onChange={e => setForm({ ...form, displayName: e.target.value })} placeholder="Your name" />
           <Textarea label="Bio" value={form.bio} onChange={e => setForm({ ...form, bio: e.target.value })} placeholder="Tell brands about yourself..." rows={3} />
@@ -226,7 +259,7 @@ export function MediaKitEditor() {
             <label className="block text-sm font-medium text-zinc-400 mb-1.5">Niche</label>
             <div className="flex flex-wrap gap-2 mb-2">
               {form.niche.map((n, i) => (
-                <span key={i} className="flex items-center gap-1 bg-violet-500/20 text-violet-400 text-xs px-2 py-1 rounded-full">
+                <span key={i} className="flex items-center gap-1 bg-violet-100 text-violet-600 text-xs px-2 py-1 rounded-full">
                   {n} <button onClick={() => removeNiche(i)}><X className="w-3 h-3" /></button>
                 </span>
               ))}
@@ -240,7 +273,7 @@ export function MediaKitEditor() {
       </Card>
 
       <Card>
-        <h3 className="text-sm font-semibold text-zinc-300 mb-3">Social Accounts</h3>
+        <h3 className="text-sm font-semibold text-zinc-700 mb-3">Social Accounts</h3>
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <Input label="Instagram Handle" value={form.instagramHandle} onChange={e => setForm({ ...form, instagramHandle: e.target.value })} placeholder="@handle" />
@@ -270,7 +303,7 @@ export function MediaKitEditor() {
       </Card>
 
       <Card>
-        <h3 className="text-sm font-semibold text-zinc-300 mb-3">Rates ($)</h3>
+        <h3 className="text-sm font-semibold text-zinc-700 mb-3">Rates ($)</h3>
         <div className="grid grid-cols-2 gap-3">
           <Input label="IG Post" type="number" value={String(form.rates.instagramPost)} onChange={e => setForm({ ...form, rates: { ...form.rates, instagramPost: Number(e.target.value) } })} />
           <Input label="IG Story" type="number" value={String(form.rates.instagramStory)} onChange={e => setForm({ ...form, rates: { ...form.rates, instagramStory: Number(e.target.value) } })} />
@@ -287,10 +320,10 @@ export function MediaKitEditor() {
       </Card>
 
       <Card>
-        <h3 className="text-sm font-semibold text-zinc-300 mb-3">Past Collaborations</h3>
+        <h3 className="text-sm font-semibold text-zinc-700 mb-3">Past Collaborations</h3>
         <div className="flex flex-wrap gap-2 mb-3">
           {form.pastBrands.map((brand, i) => (
-            <span key={i} className="flex items-center gap-1 bg-zinc-800 text-zinc-300 text-xs px-2 py-1 rounded-full">
+            <span key={i} className="flex items-center gap-1 bg-zinc-100 text-zinc-700 text-xs px-2 py-1 rounded-full">
               {brand} <button onClick={() => removeBrand(i)}><X className="w-3 h-3" /></button>
             </span>
           ))}
@@ -302,15 +335,15 @@ export function MediaKitEditor() {
       </Card>
 
       <Card>
-        <h3 className="text-sm font-semibold text-zinc-300 mb-3">Inspiration Creators</h3>
-        <p className="text-xs text-zinc-500 mb-3">Add creators whose content style you admire. AI will use these as inspiration.</p>
+        <h3 className="text-sm font-semibold text-zinc-700 mb-3">Inspiration Creators</h3>
+        <p className="text-xs text-zinc-400 mb-3">Add creators whose content style you admire. AI will use these as inspiration.</p>
         <div className="space-y-2 mb-3">
           {(form.inspirationCreators || []).map((creator, i) => (
             <div key={i} className="flex items-center gap-2 bg-surface-elevated rounded-lg px-3 py-2">
-              <span className="text-sm font-medium text-violet-400">{creator.handle}</span>
-              <span className="text-xs text-zinc-600 bg-zinc-800 px-1.5 py-0.5 rounded">{creator.platform}</span>
-              <span className="text-xs text-zinc-500 flex-1 truncate">{creator.note}</span>
-              <button onClick={() => removeCreator(i)} className="text-zinc-600 hover:text-red-400 transition-colors shrink-0"><X className="w-3 h-3" /></button>
+              <span className="text-sm font-medium text-violet-600">{creator.handle}</span>
+              <span className="text-xs text-zinc-400 bg-zinc-100 px-1.5 py-0.5 rounded">{creator.platform}</span>
+              <span className="text-xs text-zinc-400 flex-1 truncate">{creator.note}</span>
+              <button onClick={() => removeCreator(i)} className="text-zinc-400 hover:text-red-600 transition-colors shrink-0"><X className="w-3 h-3" /></button>
             </div>
           ))}
         </div>

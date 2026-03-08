@@ -22,10 +22,10 @@ export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <aside className={`hidden md:flex flex-col bg-surface-card border-r border-zinc-800 transition-all duration-300 ${collapsed ? 'w-16' : 'w-56'}`}>
-      <div className={`flex items-center gap-2 px-4 h-16 border-b border-zinc-800 ${collapsed ? 'justify-center' : ''}`}>
-        <Sparkles className="w-6 h-6 text-violet-400 shrink-0" />
-        {!collapsed && <span className="font-bold text-lg bg-gradient-to-r from-violet-400 to-pink-400 bg-clip-text text-transparent">Creator Hub</span>}
+    <aside className={`hidden md:flex flex-col bg-surface-card border-r border-zinc-200 transition-all duration-300 ${collapsed ? 'w-16' : 'w-56'}`}>
+      <div className={`flex items-center gap-2 px-4 h-16 border-b border-zinc-200 ${collapsed ? 'justify-center' : ''}`}>
+        <Sparkles className="w-6 h-6 text-violet-600 shrink-0" />
+        {!collapsed && <span className="font-bold text-lg bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-transparent">Creator Hub</span>}
       </div>
 
       <nav className="flex-1 py-4 space-y-1">
@@ -37,8 +37,8 @@ export function Sidebar() {
               href={item.href}
               className={`flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg transition-colors ${
                 isActive
-                  ? 'bg-violet-500/15 text-violet-400'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
+                  ? 'bg-violet-100 text-violet-600'
+                  : 'text-zinc-400 hover:text-zinc-800 hover:bg-zinc-100'
               } ${collapsed ? 'justify-center px-0 mx-1' : ''}`}
             >
               <item.icon className="w-5 h-5 shrink-0" />
@@ -50,7 +50,7 @@ export function Sidebar() {
 
       <button
         onClick={() => setCollapsed(c => !c)}
-        className="flex items-center justify-center h-12 border-t border-zinc-800 text-zinc-500 hover:text-zinc-300 transition-colors"
+        className="flex items-center justify-center h-12 border-t border-zinc-200 text-zinc-400 hover:text-zinc-700 transition-colors"
       >
         {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
       </button>

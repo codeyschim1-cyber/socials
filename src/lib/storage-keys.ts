@@ -14,4 +14,5 @@ export const STORAGE_KEYS = {
   CONTENT_LIBRARY: 'creatorhub_content_library',
   API_KEY: 'creatorhub_api_key',
   BOARD_CONTENT: 'creatorhub_board_content',
+  ATTENDED_EVENTS: 'creatorhub_attended_events',
 } as const;

@@ -17,7 +17,7 @@ export function MobileNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-card border-t border-zinc-800 z-50">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-card border-t border-zinc-200 z-50">
       <div className="flex items-center justify-around h-16">
         {NAV_ITEMS.map(item => {
           const isActive = pathname === item.href;
@@ -26,7 +26,7 @@ export function MobileNav() {
               key={item.href}
               href={item.href}
               className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-colors ${
-                isActive ? 'text-violet-400' : 'text-zinc-500'
+                isActive ? 'text-violet-600' : 'text-zinc-400'
               }`}
             >
               <item.icon className="w-5 h-5" />

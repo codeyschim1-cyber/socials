@@ -15,6 +15,7 @@ import { TrendingTracker } from './TrendingTracker';
 import { ContentPillars } from './ContentPillars';
 import { SwipeFile } from './SwipeFile';
 import { ContentBoard } from './ContentBoard';
+import { RepurposeEngine } from './RepurposeEngine';
 import { ContentIdea } from '@/types/ideas';
 import { Plus, Lightbulb, Search } from 'lucide-react';
 
@@ -27,6 +28,7 @@ const TABS = [
   { id: 'captions', label: 'Captions' },
   { id: 'trending', label: 'Trending' },
   { id: 'pillars', label: 'Pillars' },
+  { id: 'repurpose', label: 'Repurpose' },
   { id: 'swipe', label: 'Swipe File' },
 ];
 
@@ -64,12 +66,12 @@ export function IdeaBank() {
         <div>
           <div className="flex flex-col sm:flex-row gap-3 mb-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
               <input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Search ideas..."
-                className="w-full bg-surface-elevated border border-zinc-700 rounded-lg pl-9 pr-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-violet-500"
+                className="w-full bg-surface-elevated border border-zinc-300 rounded-lg pl-9 pr-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-violet-500"
               />
             </div>
             <div className="flex gap-2">
@@ -78,7 +80,7 @@ export function IdeaBank() {
                   key={cat}
                   onClick={() => setCategoryFilter(cat)}
                   className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                    categoryFilter === cat ? 'bg-violet-600 text-white' : 'bg-zinc-800 text-zinc-400 hover:text-zinc-200'
+                    categoryFilter === cat ? 'bg-violet-600 text-white' : 'bg-zinc-100 text-zinc-400 hover:text-zinc-800'
                   }`}
                 >
                   {cat === 'all' ? 'All' : cat.charAt(0).toUpperCase() + cat.slice(1)}
@@ -131,6 +133,7 @@ export function IdeaBank() {
       {activeTab === 'captions' && <CaptionTemplates />}
       {activeTab === 'trending' && <TrendingTracker />}
       {activeTab === 'pillars' && <ContentPillars onAddIdea={addIdea} />}
+      {activeTab === 'repurpose' && <RepurposeEngine />}
       {activeTab === 'swipe' && <SwipeFile />}
     </div>
   );

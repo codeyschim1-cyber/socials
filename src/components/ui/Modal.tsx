@@ -25,11 +25,11 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = 'max-w-lg' 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className={`relative bg-surface-card border border-zinc-800 rounded-xl shadow-2xl w-full ${maxWidth} mx-4 max-h-[85vh] flex flex-col`}>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
-          <h2 className="text-lg font-semibold text-zinc-100">{title}</h2>
-          <button onClick={onClose} className="text-zinc-500 hover:text-zinc-300 transition-colors">
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
+      <div className={`relative bg-surface-card border border-zinc-200 rounded-xl shadow-2xl w-full ${maxWidth} mx-4 max-h-[85vh] flex flex-col`}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-200">
+          <h2 className="text-lg font-semibold text-zinc-900">{title}</h2>
+          <button onClick={onClose} className="text-zinc-400 hover:text-zinc-700 transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>

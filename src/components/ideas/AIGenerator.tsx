@@ -1,16 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useApiKey } from '@/hooks/useApiKey';
 import { useContentLibrary } from '@/hooks/useContentLibrary';
 import { useMediaKit } from '@/hooks/useMediaKit';
+import { useAnalytics } from '@/hooks/useAnalytics';
+import { getLatestEntry } from '@/lib/analytics-utils';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Badge } from '@/components/ui/Badge';
 import { IDEA_CATEGORIES, PLATFORM_COLORS, PLATFORM_SHORT_LABELS } from '@/lib/constants';
-import { Sparkles, Loader2, Key, Plus, Check } from 'lucide-react';
+import { Sparkles, Loader2, Key, Plus, Check, TrendingUp } from 'lucide-react';
 import { ContentIdea, GeneratedIdea } from '@/types/ideas';
 import { Platform } from '@/types/common';
 import { IdeaDeepDiveModal } from './IdeaDeepDiveModal';
@@ -23,6 +25,24 @@ export function AIGenerator({ onAddIdea }: AIGeneratorProps) {
   const { apiKey, setApiKey } = useApiKey();
   const { entries: contentLibrary } = useContentLibrary();
   const { mediaKit } = useMediaKit();
+  const { entries: analyticsEntries } = useAnalytics();
+
+  const performanceInsight = useMemo(() => {
+    const platforms = ['instagram', 'tiktok', 'youtube', 'facebook'] as const;
+    const platformStats = platforms.map(p => {
+      const latest = getLatestEntry(analyticsEntries, p);
+      return { platform: p, engagementRate: latest?.engagementRate ?? 0, followers: latest?.followers ?? 0 };
+    }).filter(p => p.followers > 0);
+
+    if (platformStats.length === 0) return null;
+    const best = platformStats.sort((a, b) => b.engagementRate - a.engagementRate)[0];
+    return {
+      topPlatform: best.platform,
+      engagementRate: best.engagementRate,
+      summary: `${best.platform.charAt(0).toUpperCase() + best.platform.slice(1)} (${best.engagementRate}% eng.)`,
+    };
+  }, [analyticsEntries]);
+
   const [notes, setNotes] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedIdeas, setGeneratedIdeas] = useState<GeneratedIdea[]>([]);
@@ -77,6 +97,10 @@ export function AIGenerator({ onAddIdea }: AIGeneratorProps) {
           niche: mediaKit.niche.length > 0 ? mediaKit.niche.join(', ') : undefined,
           creatorBio: mediaKit.bio || undefined,
           inspirationCreators: mediaKit.inspirationCreators?.length > 0 ? mediaKit.inspirationCreators : undefined,
+          performanceData: performanceInsight ? {
+            topPlatform: performanceInsight.topPlatform,
+            engagementRate: performanceInsight.engagementRate,
+          } : undefined,
         }),
       });
 
@@ -119,12 +143,12 @@ export function AIGenerator({ onAddIdea }: AIGeneratorProps) {
     <div className="space-y-4">
       {/* API key setup */}
       {!apiKey && !showKeyInput && (
-        <Card className="border-violet-500/30 bg-violet-500/5">
+        <Card className="border-violet-300 bg-violet-50">
           <div className="flex items-center gap-3">
-            <Key className="w-5 h-5 text-violet-400 shrink-0" />
+            <Key className="w-5 h-5 text-violet-600 shrink-0" />
             <div className="flex-1">
-              <p className="text-sm text-zinc-200">Connect your Anthropic API key to enable AI-powered idea generation.</p>
-              <p className="text-xs text-zinc-500 mt-1">Your key is stored locally and never sent to our servers.</p>
+              <p className="text-sm text-zinc-800">Connect your Anthropic API key to enable AI-powered idea generation.</p>
+              <p className="text-xs text-zinc-400 mt-1">Your key is stored locally and never sent to our servers.</p>
             </div>
             <Button size="sm" onClick={() => setShowKeyInput(true)}>Set Key</Button>
           </div>
@@ -133,7 +157,7 @@ export function AIGenerator({ onAddIdea }: AIGeneratorProps) {
 
       {showKeyInput && (
         <Card>
-          <h3 className="text-sm font-semibold text-zinc-200 mb-3">Enter Anthropic API Key</h3>
+          <h3 className="text-sm font-semibold text-zinc-800 mb-3">Enter Anthropic API Key</h3>
           <div className="flex gap-2">
             <Input
               value={keyInput}
@@ -151,10 +175,10 @@ export function AIGenerator({ onAddIdea }: AIGeneratorProps) {
       {/* Generator */}
       <Card>
         <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="w-5 h-5 text-violet-400" />
-          <h3 className="text-sm font-semibold text-zinc-200">AI Idea Generator</h3>
+          <Sparkles className="w-5 h-5 text-violet-600" />
+          <h3 className="text-sm font-semibold text-zinc-800">AI Idea Generator</h3>
           {apiKey && (
-            <button onClick={() => setShowKeyInput(true)} className="ml-auto text-xs text-zinc-600 hover:text-zinc-400 transition-colors">
+            <button onClick={() => setShowKeyInput(true)} className="ml-auto text-xs text-zinc-400 hover:text-zinc-500 transition-colors">
               Change API Key
             </button>
           )}
@@ -168,9 +192,18 @@ export function AIGenerator({ onAddIdea }: AIGeneratorProps) {
         />
 
         {contentLibrary.length > 0 && (
-          <p className="text-xs text-zinc-600 mt-2">
+          <p className="text-xs text-zinc-400 mt-2">
             AI will also reference your {contentLibrary.length} saved content entries for context.
           </p>
+        )}
+
+        {performanceInsight && (
+          <div className="flex items-center gap-2 mt-2 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+            <TrendingUp className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+            <p className="text-xs text-emerald-700">
+              Based on your top performing content: <span className="font-semibold">{performanceInsight.summary}</span>
+            </p>
+          </div>
         )}
 
         <div className="flex gap-2 mt-3">
@@ -193,7 +226,7 @@ export function AIGenerator({ onAddIdea }: AIGeneratorProps) {
         </div>
 
         {error && (
-          <p className="text-sm text-red-400 mt-3">{error}</p>
+          <p className="text-sm text-red-600 mt-3">{error}</p>
         )}
       </Card>
 
@@ -201,27 +234,27 @@ export function AIGenerator({ onAddIdea }: AIGeneratorProps) {
       {generatedIdeas.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Generated Ideas</h3>
-            <p className="text-xs text-zinc-600">Click a card for a full production plan</p>
+            <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Generated Ideas</h3>
+            <p className="text-xs text-zinc-400">Click a card for a full production plan</p>
           </div>
           {generatedIdeas.map((idea, i) => {
             const added = addedIds.has(i);
             const catColors = IDEA_CATEGORIES[idea.category] || IDEA_CATEGORIES.evergreen;
             const platColors = PLATFORM_COLORS[idea.platform] || PLATFORM_COLORS.all;
             return (
-              <Card key={i} className={`${added ? 'opacity-60' : 'cursor-pointer hover:border-violet-500/40 transition-colors'}`}>
+              <Card key={i} className={`${added ? 'opacity-60' : 'cursor-pointer hover:border-violet-400 transition-colors'}`}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1" onClick={() => handleCardClick(idea)}>
                     <div className="flex items-center gap-2 mb-1">
                       <Badge className={catColors.color}>{catColors.label}</Badge>
                       <Badge className={platColors.badge}>{PLATFORM_SHORT_LABELS[idea.platform] || 'All'}</Badge>
                     </div>
-                    <h4 className="text-sm font-medium text-zinc-200">{idea.title}</h4>
+                    <h4 className="text-sm font-medium text-zinc-800">{idea.title}</h4>
                     <p className="text-xs text-zinc-400 mt-1">{idea.description}</p>
                     {idea.tags.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
                         {idea.tags.map(tag => (
-                          <span key={tag} className="text-[10px] text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded">#{tag}</span>
+                          <span key={tag} className="text-[10px] text-zinc-400 bg-zinc-100 px-1.5 py-0.5 rounded">#{tag}</span>
                         ))}
                       </div>
                     )}
@@ -232,7 +265,7 @@ export function AIGenerator({ onAddIdea }: AIGeneratorProps) {
                     onClick={(e) => { e.stopPropagation(); handleAddIdea(idea, i); }}
                     disabled={added}
                   >
-                    {added ? <Check className="w-4 h-4 text-green-400" /> : <Plus className="w-4 h-4" />}
+                    {added ? <Check className="w-4 h-4 text-green-600" /> : <Plus className="w-4 h-4" />}
                   </Button>
                 </div>
               </Card>

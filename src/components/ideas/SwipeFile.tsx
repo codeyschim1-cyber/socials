@@ -63,21 +63,21 @@ export function SwipeFile() {
               </div>
               <div className="flex gap-1">
                 {entry.sourceUrl && (
-                  <a href={entry.sourceUrl} target="_blank" rel="noopener noreferrer" className="p-1.5 text-zinc-500 hover:text-violet-400 transition-colors">
+                  <a href={entry.sourceUrl} target="_blank" rel="noopener noreferrer" className="p-1.5 text-zinc-400 hover:text-violet-600 transition-colors">
                     <ExternalLink className="w-4 h-4" />
                   </a>
                 )}
-                <button onClick={() => deleteEntry(entry.id)} className="p-1.5 text-zinc-600 hover:text-red-400 transition-colors">
+                <button onClick={() => deleteEntry(entry.id)} className="p-1.5 text-zinc-400 hover:text-red-600 transition-colors">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             </div>
-            <h3 className="text-sm font-medium text-zinc-200 mb-1">{entry.title}</h3>
-            {entry.notes && <p className="text-xs text-zinc-500 line-clamp-3">{entry.notes}</p>}
+            <h3 className="text-sm font-medium text-zinc-800 mb-1">{entry.title}</h3>
+            {entry.notes && <p className="text-xs text-zinc-400 line-clamp-3">{entry.notes}</p>}
             {entry.tags.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-2">
                 {entry.tags.map(tag => (
-                  <span key={tag} className="text-[10px] text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded">#{tag}</span>
+                  <span key={tag} className="text-[10px] text-zinc-400 bg-zinc-100 px-1.5 py-0.5 rounded">#{tag}</span>
                 ))}
               </div>
             )}

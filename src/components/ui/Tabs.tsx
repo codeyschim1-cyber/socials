@@ -16,7 +16,7 @@ export function Tabs({ tabs, activeTab, onChange }: TabsProps) {
           className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap ${
             activeTab === tab.id
               ? 'bg-violet-600 text-white'
-              : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700'
+              : 'text-zinc-400 hover:text-zinc-800 hover:bg-zinc-200'
           }`}
         >
           {tab.label}

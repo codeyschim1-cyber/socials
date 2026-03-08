@@ -33,12 +33,12 @@ export function MonthGrid({ currentDate, posts, events = [], onPostClick, onDayC
     <div>
       <div className="calendar-grid mb-px">
         {WEEKDAYS.map(day => (
-          <div key={day} className="text-center text-xs font-medium text-zinc-500 py-2">
+          <div key={day} className="text-center text-xs font-medium text-zinc-400 py-2">
             {day}
           </div>
         ))}
       </div>
-      <div className="calendar-grid bg-zinc-800/30 rounded-lg overflow-hidden">
+      <div className="calendar-grid bg-zinc-100/30 rounded-lg overflow-hidden">
         {days.map(day => {
           const key = formatDateKey(day);
           return (

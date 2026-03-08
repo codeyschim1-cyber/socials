@@ -1,25 +1,28 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useCalendarPosts } from '@/hooks/useCalendarPosts';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { STORAGE_KEYS } from '@/lib/storage-keys';
 import { MonthGrid } from './MonthGrid';
 import { WeekView } from './WeekView';
 import { EventsThisMonth } from './EventsThisMonth';
 import { PostFormModal } from './PostFormModal';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
-import { CalendarPost, PostStatus } from '@/types/calendar';
-import { Platform } from '@/types/common';
+import { CalendarPost } from '@/types/calendar';
 import { PLATFORM_OPTIONS } from '@/lib/constants';
 import { getEventsForMonth } from '@/lib/event-utils';
 import {
   addMonths, subMonths, addWeeks, subWeeks,
   formatDisplayDate, formatWeekRange, formatDateKey
 } from '@/lib/calendar-utils';
+import { format, addDays, subDays, parseISO } from 'date-fns';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 
 export function CalendarView() {
   const { posts, addPost, updatePost, deletePost } = useCalendarPosts();
+  const [attendedEvents, setAttendedEvents] = useLocalStorage<string[]>(STORAGE_KEYS.ATTENDED_EVENTS, []);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<'month' | 'week'>('month');
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -65,20 +68,61 @@ export function CalendarView() {
     setIsFormOpen(true);
   };
 
+  const handleAttend = useCallback((eventId: string, eventName: string, eventDate: string) => {
+    setAttendedEvents(prev => [...prev, eventId]);
+    const eventDay = parseISO(eventDate);
+    const drafts: Omit<CalendarPost, 'id' | 'createdAt' | 'updatedAt'>[] = [
+      {
+        title: `Teaser: Going to ${eventName}!`,
+        description: `Pre-event hype post for ${eventName}. Share what you're looking for, set expectations, build anticipation.`,
+        platform: 'all',
+        status: 'draft',
+        scheduledDate: format(subDays(eventDay, 2), 'yyyy-MM-dd'),
+        tags: [`event:${eventId}`, 'event-series'],
+        notes: `Auto-created: Pre-event teaser for ${eventName}`,
+      },
+      {
+        title: `Live at ${eventName}: Hauls & Finds`,
+        description: `Day-of content from ${eventName}. Film walkthrough, haul discoveries, vendor highlights, try-on clips.`,
+        platform: 'all',
+        status: 'draft',
+        scheduledDate: eventDate,
+        tags: [`event:${eventId}`, 'event-series'],
+        notes: `Auto-created: Day-of content for ${eventName}`,
+      },
+      {
+        title: `${eventName} Recap & Best Finds`,
+        description: `Post-event recap for ${eventName}. Show full haul, rate the event, share tips for next time.`,
+        platform: 'all',
+        status: 'draft',
+        scheduledDate: format(addDays(eventDay, 2), 'yyyy-MM-dd'),
+        tags: [`event:${eventId}`, 'event-series'],
+        notes: `Auto-created: Post-event recap for ${eventName}`,
+      },
+    ];
+    drafts.forEach(draft => addPost(draft));
+  }, [setAttendedEvents, addPost]);
+
+  const handleUnattend = useCallback((eventId: string) => {
+    setAttendedEvents(prev => prev.filter(id => id !== eventId));
+    // Remove all auto-created posts for this event
+    posts.filter(p => p.tags.includes(`event:${eventId}`)).forEach(p => deletePost(p.id));
+  }, [setAttendedEvents, posts, deletePost]);
+
   return (
     <div>
       {/* Header controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1">
-            <button onClick={navigateBack} className="p-1.5 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-zinc-200">
+            <button onClick={navigateBack} className="p-1.5 hover:bg-zinc-100 rounded-lg transition-colors text-zinc-400 hover:text-zinc-800">
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <button onClick={navigateForward} className="p-1.5 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-zinc-200">
+            <button onClick={navigateForward} className="p-1.5 hover:bg-zinc-100 rounded-lg transition-colors text-zinc-400 hover:text-zinc-800">
               <ChevronRight className="w-5 h-5" />
             </button>
           </div>
-          <h2 className="text-lg font-semibold text-zinc-100">
+          <h2 className="text-lg font-semibold text-zinc-900">
             {view === 'month' ? formatDisplayDate(currentDate) : formatWeekRange(currentDate)}
           </h2>
           <Button variant="ghost" size="sm" onClick={goToToday}>Today</Button>
@@ -107,7 +151,7 @@ export function CalendarView() {
             <button
               onClick={() => setView('month')}
               className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                view === 'month' ? 'bg-violet-600 text-white' : 'text-zinc-400 hover:text-zinc-200'
+                view === 'month' ? 'bg-violet-600 text-white' : 'text-zinc-400 hover:text-zinc-800'
               }`}
             >
               Month
@@ -115,7 +159,7 @@ export function CalendarView() {
             <button
               onClick={() => setView('week')}
               className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                view === 'week' ? 'bg-violet-600 text-white' : 'text-zinc-400 hover:text-zinc-200'
+                view === 'week' ? 'bg-violet-600 text-white' : 'text-zinc-400 hover:text-zinc-800'
               }`}
             >
               Week
@@ -147,7 +191,13 @@ export function CalendarView() {
       )}
 
       {/* Events this month */}
-      <EventsThisMonth events={monthEvents} />
+      <EventsThisMonth
+        events={monthEvents}
+        posts={posts}
+        attendedEvents={attendedEvents}
+        onAttend={handleAttend}
+        onUnattend={handleUnattend}
+      />
 
       {/* Post form modal */}
       <PostFormModal

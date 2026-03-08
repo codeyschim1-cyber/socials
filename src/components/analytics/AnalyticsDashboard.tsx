@@ -16,10 +16,10 @@ import { Input } from '@/components/ui/Input';
 import { format, parseISO } from 'date-fns';
 
 const ALL_PLATFORMS = [
-  { key: 'instagram' as const, label: 'Instagram', color: 'text-pink-400' },
-  { key: 'tiktok' as const, label: 'TikTok', color: 'text-teal-400' },
-  { key: 'youtube' as const, label: 'YouTube', color: 'text-red-400' },
-  { key: 'facebook' as const, label: 'Facebook', color: 'text-blue-400' },
+  { key: 'instagram' as const, label: 'Instagram', color: 'text-pink-600' },
+  { key: 'tiktok' as const, label: 'TikTok', color: 'text-teal-600' },
+  { key: 'youtube' as const, label: 'YouTube', color: 'text-red-600' },
+  { key: 'facebook' as const, label: 'Facebook', color: 'text-blue-600' },
 ];
 
 export function AnalyticsDashboard() {
@@ -85,7 +85,7 @@ export function AnalyticsDashboard() {
               key={p}
               onClick={() => setPeriod(p)}
               className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                period === p ? 'bg-violet-600 text-white' : 'bg-zinc-800 text-zinc-400 hover:text-zinc-200'
+                period === p ? 'bg-violet-600 text-white' : 'bg-zinc-100 text-zinc-400 hover:text-zinc-800'
               }`}
             >
               {p === 'all' ? 'All Time' : p === 'week' ? '7 Days' : '30 Days'}
@@ -110,10 +110,10 @@ export function AnalyticsDashboard() {
             <Card key={p.key}>
               <div className="flex items-center gap-2 mb-2">
                 <Users className={`w-4 h-4 ${p.color}`} />
-                <span className="text-xs text-zinc-500">{p.label}</span>
+                <span className="text-xs text-zinc-400">{p.label}</span>
               </div>
-              <p className="text-2xl font-bold text-zinc-100">{latest?.followers?.toLocaleString() ?? '—'}</p>
-              {latest?.engagementRate != null && <p className="text-xs text-emerald-400 mt-1">{latest.engagementRate}% engagement</p>}
+              <p className="text-2xl font-bold text-zinc-900">{latest?.followers?.toLocaleString() ?? '—'}</p>
+              {latest?.engagementRate != null && <p className="text-xs text-emerald-600 mt-1">{latest.engagementRate}% engagement</p>}
             </Card>
           );
         })}
@@ -123,19 +123,19 @@ export function AnalyticsDashboard() {
       <div className="grid grid-cols-2 gap-4">
         <Card>
           <div className="flex items-center gap-2 mb-2">
-            <Heart className="w-4 h-4 text-red-400" />
-            <span className="text-xs text-zinc-500">Total Likes</span>
+            <Heart className="w-4 h-4 text-red-600" />
+            <span className="text-xs text-zinc-400">Total Likes</span>
           </div>
-          <p className="text-2xl font-bold text-zinc-100">
+          <p className="text-2xl font-bold text-zinc-900">
             {filteredEntries.reduce((sum, e) => sum + e.likes, 0).toLocaleString()}
           </p>
         </Card>
         <Card>
           <div className="flex items-center gap-2 mb-2">
-            <Eye className="w-4 h-4 text-blue-400" />
-            <span className="text-xs text-zinc-500">Total Views</span>
+            <Eye className="w-4 h-4 text-blue-600" />
+            <span className="text-xs text-zinc-400">Total Views</span>
           </div>
-          <p className="text-2xl font-bold text-zinc-100">
+          <p className="text-2xl font-bold text-zinc-900">
             {filteredEntries.reduce((sum, e) => sum + e.views, 0).toLocaleString()}
           </p>
         </Card>
@@ -144,8 +144,8 @@ export function AnalyticsDashboard() {
       {/* Engagement calculator */}
       {showCalculator && (
         <Card>
-          <h3 className="text-sm font-semibold text-zinc-200 mb-3 flex items-center gap-2">
-            <Calculator className="w-4 h-4 text-violet-400" /> Engagement Rate Calculator
+          <h3 className="text-sm font-semibold text-zinc-800 mb-3 flex items-center gap-2">
+            <Calculator className="w-4 h-4 text-violet-600" /> Engagement Rate Calculator
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
             <Input label="Followers" type="number" placeholder="10000" value={calcFollowers} onChange={e => setCalcFollowers(e.target.value)} />
@@ -154,8 +154,8 @@ export function AnalyticsDashboard() {
             <Input label="Shares" type="number" placeholder="20" value={calcShares} onChange={e => setCalcShares(e.target.value)} />
           </div>
           <div className="bg-surface-elevated rounded-lg p-3 inline-block">
-            <span className="text-xs text-zinc-500 mr-2">Engagement Rate:</span>
-            <span className="text-lg font-bold text-violet-400">{calcResult}%</span>
+            <span className="text-xs text-zinc-400 mr-2">Engagement Rate:</span>
+            <span className="text-lg font-bold text-violet-600">{calcResult}%</span>
           </div>
         </Card>
       )}
@@ -163,8 +163,8 @@ export function AnalyticsDashboard() {
       {/* Charts */}
       <div className="grid md:grid-cols-2 gap-4">
         <Card>
-          <h3 className="text-sm font-semibold text-zinc-200 mb-4 flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-violet-400" /> Follower Growth
+          <h3 className="text-sm font-semibold text-zinc-800 mb-4 flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-violet-600" /> Follower Growth
           </h3>
           {combinedGrowth.length > 0 ? (
             <LineChartWrapper
@@ -174,12 +174,12 @@ export function AnalyticsDashboard() {
               height={250}
             />
           ) : (
-            <p className="text-sm text-zinc-500 text-center py-8">Add metrics to see growth trends</p>
+            <p className="text-sm text-zinc-400 text-center py-8">Add metrics to see growth trends</p>
           )}
         </Card>
         <Card>
-          <h3 className="text-sm font-semibold text-zinc-200 mb-4 flex items-center gap-2">
-            <BarChart3 className="w-4 h-4 text-violet-400" /> Engagement Rate
+          <h3 className="text-sm font-semibold text-zinc-800 mb-4 flex items-center gap-2">
+            <BarChart3 className="w-4 h-4 text-violet-600" /> Engagement Rate
           </h3>
           {engagementData.length > 0 ? (
             <BarChartWrapper
@@ -189,14 +189,14 @@ export function AnalyticsDashboard() {
               height={250}
             />
           ) : (
-            <p className="text-sm text-zinc-500 text-center py-8">Add metrics to see engagement data</p>
+            <p className="text-sm text-zinc-400 text-center py-8">Add metrics to see engagement data</p>
           )}
         </Card>
       </div>
 
       {/* Platform comparison */}
       <Card>
-        <h3 className="text-sm font-semibold text-zinc-200 mb-4">Platform Comparison</h3>
+        <h3 className="text-sm font-semibold text-zinc-800 mb-4">Platform Comparison</h3>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
           {ALL_PLATFORMS.map(p => {
             const latest = latestByPlatform[p.key];
@@ -206,13 +206,13 @@ export function AnalyticsDashboard() {
                 <Badge className={colors.badge}>{p.label}</Badge>
                 {latest ? (
                   <div className="grid grid-cols-2 gap-3 mt-3">
-                    <div><p className="text-xs text-zinc-500">Followers</p><p className="text-lg font-bold text-zinc-100">{latest.followers.toLocaleString()}</p></div>
-                    <div><p className="text-xs text-zinc-500">Engagement</p><p className="text-lg font-bold text-zinc-100">{latest.engagementRate}%</p></div>
-                    <div><p className="text-xs text-zinc-500">Likes</p><p className="text-sm font-medium text-zinc-300">{latest.likes.toLocaleString()}</p></div>
-                    <div><p className="text-xs text-zinc-500">Views</p><p className="text-sm font-medium text-zinc-300">{latest.views.toLocaleString()}</p></div>
+                    <div><p className="text-xs text-zinc-400">Followers</p><p className="text-lg font-bold text-zinc-900">{latest.followers.toLocaleString()}</p></div>
+                    <div><p className="text-xs text-zinc-400">Engagement</p><p className="text-lg font-bold text-zinc-900">{latest.engagementRate}%</p></div>
+                    <div><p className="text-xs text-zinc-400">Likes</p><p className="text-sm font-medium text-zinc-700">{latest.likes.toLocaleString()}</p></div>
+                    <div><p className="text-xs text-zinc-400">Views</p><p className="text-sm font-medium text-zinc-700">{latest.views.toLocaleString()}</p></div>
                   </div>
                 ) : (
-                  <p className="text-sm text-zinc-500 mt-3">No data yet</p>
+                  <p className="text-sm text-zinc-400 mt-3">No data yet</p>
                 )}
               </div>
             );
@@ -222,17 +222,17 @@ export function AnalyticsDashboard() {
 
       {/* Recent entries */}
       <Card>
-        <h3 className="text-sm font-semibold text-zinc-200 mb-3">Recent Entries</h3>
+        <h3 className="text-sm font-semibold text-zinc-800 mb-3">Recent Entries</h3>
         <div className="space-y-2">
           {entries.slice().sort((a, b) => b.date.localeCompare(a.date)).slice(0, 10).map(entry => (
             <div key={entry.id} className="flex items-center justify-between bg-surface-elevated rounded-lg px-3 py-2">
               <div className="flex items-center gap-3">
                 <PlatformBadge platform={entry.platform} />
-                <span className="text-sm text-zinc-300">{format(parseISO(entry.date), 'MMM d, yyyy')}</span>
-                <span className="text-xs text-zinc-500">{entry.followers.toLocaleString()} followers</span>
-                <span className="text-xs text-zinc-500">{entry.engagementRate}% eng.</span>
+                <span className="text-sm text-zinc-700">{format(parseISO(entry.date), 'MMM d, yyyy')}</span>
+                <span className="text-xs text-zinc-400">{entry.followers.toLocaleString()} followers</span>
+                <span className="text-xs text-zinc-400">{entry.engagementRate}% eng.</span>
               </div>
-              <button onClick={() => deleteEntry(entry.id)} className="text-zinc-600 hover:text-red-400 transition-colors">
+              <button onClick={() => deleteEntry(entry.id)} className="text-zinc-400 hover:text-red-600 transition-colors">
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>

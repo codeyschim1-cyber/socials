@@ -89,10 +89,10 @@ export function HashtagCollection() {
     <div>
       {/* AI Generation Card */}
       {apiKey && (
-        <Card className="border-violet-500/30 bg-violet-500/5 mb-4">
+        <Card className="border-violet-300 bg-violet-50 mb-4">
           <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="w-5 h-5 text-violet-400" />
-            <h3 className="text-sm font-semibold text-zinc-200">AI Hashtag Generator</h3>
+            <Sparkles className="w-5 h-5 text-violet-600" />
+            <h3 className="text-sm font-semibold text-zinc-800">AI Hashtag Generator</h3>
           </div>
 
           <div className="space-y-3">
@@ -120,19 +120,19 @@ export function HashtagCollection() {
               )}
             </Button>
 
-            {aiError && <p className="text-sm text-red-400">{aiError}</p>}
+            {aiError && <p className="text-sm text-red-600">{aiError}</p>}
           </div>
 
           {/* AI Preview */}
           {aiPreview && (
-            <div className="mt-4 p-3 bg-surface-elevated rounded-lg border border-zinc-700">
+            <div className="mt-4 p-3 bg-surface-elevated rounded-lg border border-zinc-300">
               <div className="flex items-center justify-between mb-2">
-                <h4 className="text-sm font-medium text-zinc-200">{aiPreview.name}</h4>
-                <span className="text-xs text-zinc-500">{aiPreview.hashtags.length} hashtags</span>
+                <h4 className="text-sm font-medium text-zinc-800">{aiPreview.name}</h4>
+                <span className="text-xs text-zinc-400">{aiPreview.hashtags.length} hashtags</span>
               </div>
               <div className="flex flex-wrap gap-1.5 mb-3">
                 {aiPreview.hashtags.map(tag => (
-                  <span key={tag} className="text-xs text-violet-400 bg-violet-500/10 px-2 py-1 rounded">{tag}</span>
+                  <span key={tag} className="text-xs text-violet-600 bg-violet-100 px-2 py-1 rounded">{tag}</span>
                 ))}
               </div>
               <div className="flex gap-2">
@@ -151,7 +151,7 @@ export function HashtagCollection() {
                     setTimeout(() => setCopiedId(null), 2000);
                   }}
                 >
-                  {copiedId === 'ai-preview' ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />} Copy
+                  {copiedId === 'ai-preview' ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />} Copy
                 </Button>
               </div>
             </div>
@@ -173,31 +173,31 @@ export function HashtagCollection() {
           </div>
 
           {sets.length === 0 ? (
-            <p className="text-sm text-zinc-500 text-center py-8">No saved hashtag sets yet. Use AI above or create one manually.</p>
+            <p className="text-sm text-zinc-400 text-center py-8">No saved hashtag sets yet. Use AI above or create one manually.</p>
           ) : (
             <div className="grid md:grid-cols-2 gap-4">
               {sets.map(set => (
                 <Card key={set.id}>
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-medium text-zinc-200">{set.name}</h3>
+                      <h3 className="text-sm font-medium text-zinc-800">{set.name}</h3>
                       <PlatformBadge platform={set.platform} />
                     </div>
                     <div className="flex gap-1">
                       <button
                         onClick={() => copyHashtags(set.id, set.hashtags)}
-                        className="p-1.5 text-zinc-500 hover:text-violet-400 transition-colors"
+                        className="p-1.5 text-zinc-400 hover:text-violet-600 transition-colors"
                       >
-                        {copiedId === set.id ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                        {copiedId === set.id ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
                       </button>
-                      <button onClick={() => deleteSet(set.id)} className="p-1.5 text-zinc-600 hover:text-red-400 transition-colors">
+                      <button onClick={() => deleteSet(set.id)} className="p-1.5 text-zinc-400 hover:text-red-600 transition-colors">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {set.hashtags.map(tag => (
-                      <span key={tag} className="text-xs text-violet-400 bg-violet-500/10 px-2 py-1 rounded">{tag}</span>
+                      <span key={tag} className="text-xs text-violet-600 bg-violet-100 px-2 py-1 rounded">{tag}</span>
                     ))}
                   </div>
                 </Card>

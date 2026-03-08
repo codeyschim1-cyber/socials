@@ -95,18 +95,18 @@ export function IdeaDeepDiveModal({ idea, isOpen, onClose }: IdeaDeepDiveModalPr
     <Modal isOpen={isOpen} onClose={onClose} title={idea?.title || 'Deep Dive'} maxWidth="max-w-2xl">
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-12 gap-3">
-          <Loader2 className="w-8 h-8 text-violet-400 animate-spin" />
+          <Loader2 className="w-8 h-8 text-violet-600 animate-spin" />
           <p className="text-sm text-zinc-400">Generating production plan...</p>
         </div>
       ) : error ? (
         <div className="text-center py-8">
-          <p className="text-sm text-red-400 mb-3">{error}</p>
+          <p className="text-sm text-red-600 mb-3">{error}</p>
           <Button size="sm" onClick={fetchDeepDive}>Retry</Button>
         </div>
       ) : deepDive ? (
         <div>
           {/* Tab navigation */}
-          <div className="flex gap-1 mb-4 bg-zinc-800/50 rounded-lg p-1">
+          <div className="flex gap-1 mb-4 bg-zinc-100/50 rounded-lg p-1">
             {tabs.map(tab => {
               const Icon = tab.icon;
               return (
@@ -116,7 +116,7 @@ export function IdeaDeepDiveModal({ idea, isOpen, onClose }: IdeaDeepDiveModalPr
                   className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-xs font-medium transition-colors ${
                     activeTab === tab.id
                       ? 'bg-violet-600 text-white'
-                      : 'text-zinc-400 hover:text-zinc-200'
+                      : 'text-zinc-400 hover:text-zinc-800'
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
@@ -132,13 +132,13 @@ export function IdeaDeepDiveModal({ idea, isOpen, onClose }: IdeaDeepDiveModalPr
               {deepDive.shotList.map((shot, i) => (
                 <Card key={i} className="py-2.5 px-3">
                   <div className="flex items-start gap-3">
-                    <span className="text-xs font-bold text-violet-400 bg-violet-500/10 rounded-full w-6 h-6 flex items-center justify-center shrink-0">
+                    <span className="text-xs font-bold text-violet-600 bg-violet-100 rounded-full w-6 h-6 flex items-center justify-center shrink-0">
                       {i + 1}
                     </span>
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
-                        <h4 className="text-xs font-semibold text-zinc-200">{shot.shot}</h4>
-                        <span className="text-[10px] text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded">{shot.duration}</span>
+                        <h4 className="text-xs font-semibold text-zinc-800">{shot.shot}</h4>
+                        <span className="text-[10px] text-zinc-400 bg-zinc-100 px-1.5 py-0.5 rounded">{shot.duration}</span>
                       </div>
                       <p className="text-[11px] text-zinc-400 mt-0.5">{shot.description}</p>
                     </div>
@@ -155,17 +155,17 @@ export function IdeaDeepDiveModal({ idea, isOpen, onClose }: IdeaDeepDiveModalPr
                 <Card key={i} className="py-2.5 px-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1">
-                      <span className="text-[10px] font-semibold text-violet-400 uppercase tracking-wider">
+                      <span className="text-[10px] font-semibold text-violet-600 uppercase tracking-wider">
                         {HOOK_LABELS[hook.type] || hook.type}
                       </span>
-                      <p className="text-xs text-zinc-200 mt-1">&ldquo;{hook.text}&rdquo;</p>
+                      <p className="text-xs text-zinc-800 mt-1">&ldquo;{hook.text}&rdquo;</p>
                     </div>
                     <button
                       onClick={() => copyText(hook.text, `hook-${i}`)}
-                      className="p-1.5 text-zinc-500 hover:text-violet-400 transition-colors shrink-0"
+                      className="p-1.5 text-zinc-400 hover:text-violet-600 transition-colors shrink-0"
                     >
                       {copiedIndex === `hook-${i}` ? (
-                        <Check className="w-3.5 h-3.5 text-green-400" />
+                        <Check className="w-3.5 h-3.5 text-green-600" />
                       ) : (
                         <Copy className="w-3.5 h-3.5" />
                       )}
@@ -186,14 +186,14 @@ export function IdeaDeepDiveModal({ idea, isOpen, onClose }: IdeaDeepDiveModalPr
                   onClick={() => copyText(deepDive.script, 'script')}
                 >
                   {copiedIndex === 'script' ? (
-                    <><Check className="w-3.5 h-3.5 text-green-400" /> Copied</>
+                    <><Check className="w-3.5 h-3.5 text-green-600" /> Copied</>
                   ) : (
                     <><Copy className="w-3.5 h-3.5" /> Copy Script</>
                   )}
                 </Button>
               </div>
-              <div className="bg-surface-elevated rounded-lg p-4 border border-zinc-700">
-                <p className="text-xs text-zinc-300 whitespace-pre-wrap leading-relaxed">{deepDive.script}</p>
+              <div className="bg-surface-elevated rounded-lg p-4 border border-zinc-300">
+                <p className="text-xs text-zinc-700 whitespace-pre-wrap leading-relaxed">{deepDive.script}</p>
               </div>
             </div>
           )}

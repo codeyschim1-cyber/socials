@@ -40,12 +40,12 @@ export function WeekView({ currentDate, posts, events = [], onPostClick, onDayCl
           <div
             key={key}
             onClick={() => onDayClick(day)}
-            className="bg-surface-card border border-zinc-800 rounded-lg p-3 min-h-[200px] cursor-pointer hover:border-zinc-700 transition-colors"
+            className="bg-surface-card border border-zinc-200 rounded-lg p-3 min-h-[200px] cursor-pointer hover:border-zinc-300 transition-colors"
           >
             <div className="flex items-center gap-2 mb-3">
-              <span className="text-xs text-zinc-500 font-medium">{format(day, 'EEE')}</span>
+              <span className="text-xs text-zinc-400 font-medium">{format(day, 'EEE')}</span>
               <span className={`text-sm font-semibold w-7 h-7 flex items-center justify-center rounded-full ${
-                today ? 'bg-violet-600 text-white' : 'text-zinc-300'
+                today ? 'bg-violet-600 text-white' : 'text-zinc-700'
               }`}>
                 {format(day, 'd')}
               </span>
