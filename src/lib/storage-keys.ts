@@ -1,0 +1,17 @@
+export const STORAGE_KEYS = {
+  CALENDAR_POSTS: 'creatorhub_calendar_posts',
+  ANALYTICS_ENTRIES: 'creatorhub_analytics_entries',
+  CONTENT_IDEAS: 'creatorhub_content_ideas',
+  HASHTAG_SETS: 'creatorhub_hashtag_sets',
+  CAPTION_TEMPLATES: 'creatorhub_caption_templates',
+  TRENDING_TOPICS: 'creatorhub_trending_topics',
+  CONTENT_PILLARS: 'creatorhub_content_pillars',
+  SWIPE_FILE: 'creatorhub_swipe_file',
+  BRAND_DEALS: 'creatorhub_brand_deals',
+  INCOME_ENTRIES: 'creatorhub_income_entries',
+  INCOME_GOALS: 'creatorhub_income_goals',
+  MEDIA_KIT: 'creatorhub_media_kit',
+  CONTENT_LIBRARY: 'creatorhub_content_library',
+  API_KEY: 'creatorhub_api_key',
+  BOARD_CONTENT: 'creatorhub_board_content',
+} as const;
