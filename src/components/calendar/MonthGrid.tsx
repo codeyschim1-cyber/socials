@@ -12,9 +12,10 @@ interface MonthGridProps {
   events?: ThriftEventInstance[];
   onPostClick: (post: CalendarPost) => void;
   onDayClick: (date: Date) => void;
+  onEventClick?: (instance: ThriftEventInstance) => void;
 }
 
-export function MonthGrid({ currentDate, posts, events = [], onPostClick, onDayClick }: MonthGridProps) {
+export function MonthGrid({ currentDate, posts, events = [], onPostClick, onDayClick, onEventClick }: MonthGridProps) {
   const days = getCalendarDays(currentDate);
 
   const postsByDate = posts.reduce<Record<string, CalendarPost[]>>((acc, post) => {
@@ -50,6 +51,7 @@ export function MonthGrid({ currentDate, posts, events = [], onPostClick, onDayC
               events={eventsByDate[key] || []}
               onPostClick={onPostClick}
               onDayClick={onDayClick}
+              onEventClick={onEventClick}
             />
           );
         })}

@@ -16,6 +16,8 @@ export function MediaKitEditor() {
   const { entries: analyticsEntries } = useAnalytics();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState(mediaKit);
+  const [editingRate, setEditingRate] = useState<string | null>(null);
+  const [editingRateValue, setEditingRateValue] = useState('');
   const [newNiche, setNewNiche] = useState('');
   const [newBrand, setNewBrand] = useState('');
   const [newCreatorHandle, setNewCreatorHandle] = useState('');
@@ -166,30 +168,81 @@ export function MediaKitEditor() {
           })}
         </div>
 
-        {/* Rates */}
+        {/* Rates — inline editable */}
         <Card>
-          <h3 className="text-sm font-semibold text-zinc-800 mb-3 flex items-center gap-2"><DollarSign className="w-4 h-4 text-emerald-600" /> Rate Card</h3>
+          <h3 className="text-sm font-semibold text-zinc-800 mb-1 flex items-center gap-2"><DollarSign className="w-4 h-4 text-emerald-600" /> Rate Card</h3>
+          <p className="text-[10px] text-zinc-400 mb-3">Click any rate to edit inline</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[
-              { label: 'IG Post', value: mediaKit.rates.instagramPost },
-              { label: 'IG Story', value: mediaKit.rates.instagramStory },
-              { label: 'IG Reel', value: mediaKit.rates.instagramReel },
-              { label: 'TT Video', value: mediaKit.rates.tiktokVideo },
-              { label: 'YT Video', value: mediaKit.rates.youtubeVideo },
-              { label: 'YT Short', value: mediaKit.rates.youtubeShort },
-              { label: 'FB Post', value: mediaKit.rates.facebookPost },
-              { label: 'FB Reel', value: mediaKit.rates.facebookReel },
-            ].map(r => (
+            {([
+              { label: 'IG Post', key: 'instagramPost' as const },
+              { label: 'IG Story', key: 'instagramStory' as const },
+              { label: 'IG Reel', key: 'instagramReel' as const },
+              { label: 'TT Video', key: 'tiktokVideo' as const },
+              { label: 'YT Video', key: 'youtubeVideo' as const },
+              { label: 'YT Short', key: 'youtubeShort' as const },
+              { label: 'FB Post', key: 'facebookPost' as const },
+              { label: 'FB Reel', key: 'facebookReel' as const },
+            ] as const).map(r => (
               <div key={r.label} className="bg-surface-elevated rounded-lg p-3 text-center">
                 <p className="text-xs text-zinc-400 mb-1">{r.label}</p>
-                <p className="text-lg font-bold text-zinc-900">${r.value.toLocaleString()}</p>
+                {editingRate === r.key ? (
+                  <input
+                    autoFocus
+                    type="number"
+                    value={editingRateValue}
+                    onChange={e => setEditingRateValue(e.target.value)}
+                    onBlur={() => {
+                      updateMediaKit({ rates: { ...mediaKit.rates, [r.key]: Number(editingRateValue) || 0 } });
+                      setEditingRate(null);
+                    }}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        updateMediaKit({ rates: { ...mediaKit.rates, [r.key]: Number(editingRateValue) || 0 } });
+                        setEditingRate(null);
+                      }
+                    }}
+                    className="w-full text-center text-lg font-bold text-zinc-900 bg-white border border-violet-400 rounded px-2 py-0.5 outline-none"
+                  />
+                ) : (
+                  <p
+                    onClick={() => { setEditingRate(r.key); setEditingRateValue(String(mediaKit.rates[r.key])); }}
+                    className="text-lg font-bold text-zinc-900 cursor-pointer hover:text-violet-600 transition-colors"
+                  >
+                    ${mediaKit.rates[r.key].toLocaleString()}
+                  </p>
+                )}
               </div>
             ))}
           </div>
-          {mediaKit.rates.bundleRate && (
+          {(mediaKit.rates.bundleRate || editingRate === 'bundleRate') && (
             <div className="mt-3 bg-violet-100 rounded-lg p-3 text-center">
               <p className="text-xs text-zinc-400 mb-1">Bundle Rate</p>
-              <p className="text-xl font-bold text-violet-600">${mediaKit.rates.bundleRate.toLocaleString()}</p>
+              {editingRate === 'bundleRate' ? (
+                <input
+                  autoFocus
+                  type="number"
+                  value={editingRateValue}
+                  onChange={e => setEditingRateValue(e.target.value)}
+                  onBlur={() => {
+                    updateMediaKit({ rates: { ...mediaKit.rates, bundleRate: Number(editingRateValue) || undefined } });
+                    setEditingRate(null);
+                  }}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      updateMediaKit({ rates: { ...mediaKit.rates, bundleRate: Number(editingRateValue) || undefined } });
+                      setEditingRate(null);
+                    }
+                  }}
+                  className="w-full text-center text-xl font-bold text-violet-600 bg-white border border-violet-400 rounded px-2 py-0.5 outline-none"
+                />
+              ) : (
+                <p
+                  onClick={() => { setEditingRate('bundleRate'); setEditingRateValue(String(mediaKit.rates.bundleRate || 0)); }}
+                  className="text-xl font-bold text-violet-600 cursor-pointer hover:text-violet-800 transition-colors"
+                >
+                  ${(mediaKit.rates.bundleRate || 0).toLocaleString()}
+                </p>
+              )}
             </div>
           )}
         </Card>

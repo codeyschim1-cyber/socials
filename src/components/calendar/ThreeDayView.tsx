@@ -1,11 +1,12 @@
 'use client';
 
-import { getWeekDays, formatDateKey, format, isToday } from '@/lib/calendar-utils';
+import { formatDateKey, format, isToday } from '@/lib/calendar-utils';
+import { addDays } from 'date-fns';
 import { PostCard } from './PostCard';
 import { EventCard } from './EventCard';
 import { CalendarPost, ThriftEventInstance } from '@/types/calendar';
 
-interface WeekViewProps {
+interface ThreeDayViewProps {
   currentDate: Date;
   posts: CalendarPost[];
   events?: ThriftEventInstance[];
@@ -14,8 +15,8 @@ interface WeekViewProps {
   onEventClick?: (instance: ThriftEventInstance) => void;
 }
 
-export function WeekView({ currentDate, posts, events = [], onPostClick, onDayClick, onEventClick }: WeekViewProps) {
-  const days = getWeekDays(currentDate);
+export function ThreeDayView({ currentDate, posts, events = [], onPostClick, onDayClick, onEventClick }: ThreeDayViewProps) {
+  const days = [currentDate, addDays(currentDate, 1), addDays(currentDate, 2)];
 
   const postsByDate = posts.reduce<Record<string, CalendarPost[]>>((acc, post) => {
     if (!acc[post.scheduledDate]) acc[post.scheduledDate] = [];
@@ -30,7 +31,7 @@ export function WeekView({ currentDate, posts, events = [], onPostClick, onDayCl
   }, {});
 
   return (
-    <div className="grid grid-cols-7 gap-2">
+    <div className="grid grid-cols-3 gap-3">
       {days.map(day => {
         const key = formatDateKey(day);
         const dayPosts = postsByDate[key] || [];
@@ -41,23 +42,29 @@ export function WeekView({ currentDate, posts, events = [], onPostClick, onDayCl
           <div
             key={key}
             onClick={() => onDayClick(day)}
-            className="bg-surface-card border border-zinc-200 rounded-lg p-3 min-h-[200px] cursor-pointer hover:border-zinc-300 transition-colors"
+            className={`bg-surface-card border rounded-lg p-4 min-h-[300px] cursor-pointer hover:border-zinc-300 transition-colors ${
+              today ? 'border-violet-300 bg-violet-50/30' : 'border-zinc-200'
+            }`}
           >
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-xs text-zinc-400 font-medium">{format(day, 'EEE')}</span>
-              <span className={`text-sm font-semibold w-7 h-7 flex items-center justify-center rounded-full ${
+            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-zinc-100">
+              <span className="text-xs text-zinc-400 font-medium">{format(day, 'EEEE')}</span>
+              <span className={`text-lg font-bold w-9 h-9 flex items-center justify-center rounded-full ${
                 today ? 'bg-violet-600 text-white' : 'text-zinc-700'
               }`}>
                 {format(day, 'd')}
               </span>
+              <span className="text-xs text-zinc-400">{format(day, 'MMM')}</span>
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               {dayPosts.map(post => (
                 <PostCard key={post.id} post={post} onClick={() => onPostClick(post)} />
               ))}
               {dayEvents.map(inst => (
                 <EventCard key={inst.event.id} instance={inst} onClick={() => onEventClick?.(inst)} />
               ))}
+              {dayPosts.length === 0 && dayEvents.length === 0 && (
+                <p className="text-xs text-zinc-300 text-center py-8">No posts or events</p>
+              )}
             </div>
           </div>
         );

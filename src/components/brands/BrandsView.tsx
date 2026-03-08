@@ -16,6 +16,8 @@ import { PieChartWrapper } from '@/components/charts/PieChartWrapper';
 import { DealFormModal } from './DealFormModal';
 import { DealResultsModal } from './DealResultsModal';
 import { InvoiceModal } from './InvoiceModal';
+import { InvoiceBuilder } from './InvoiceBuilder';
+import { AIManager } from './AIManager';
 import { BrandDeal, DealStatus, DealResults, IncomeEntry } from '@/types/brands';
 import { DEAL_STATUS_COLORS, DEAL_STATUS_LABELS, PLATFORM_COLORS, INCOME_CATEGORIES, CHART_COLORS } from '@/lib/constants';
 import { getMonthlyRevenue, getYearlyRevenue, getRevenueByMonth, getRevenueByCategory, getGoalProgress } from '@/lib/revenue-utils';
@@ -26,6 +28,8 @@ import { format, parseISO } from 'date-fns';
 const TABS = [
   { id: 'pipeline', label: 'Pipeline' },
   { id: 'income', label: 'Income' },
+  { id: 'invoice', label: 'Invoice' },
+  { id: 'ai-manager', label: 'AI Manager' },
   { id: 'calculator', label: 'Rate Calculator' },
 ];
 
@@ -320,6 +324,12 @@ export function BrandsView() {
           </Modal>
         </div>
       )}
+
+      {/* Invoice Builder */}
+      {activeTab === 'invoice' && <InvoiceBuilder />}
+
+      {/* AI Manager */}
+      {activeTab === 'ai-manager' && <AIManager />}
 
       {/* Rate Calculator */}
       {activeTab === 'calculator' && (

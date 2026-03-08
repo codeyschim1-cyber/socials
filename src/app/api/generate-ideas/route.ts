@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
-  const { apiKey, notes, contentContext, platforms, niche, inspirationCreators, creatorBio, performanceData } = await req.json();
+  const { apiKey, notes, contentContext, platforms, niche, inspirationCreators, creatorBio, performanceData, screenshotBase64 } = await req.json();
 
   if (!apiKey) {
     return NextResponse.json({ error: 'API key is required' }, { status: 400 });
@@ -24,12 +24,16 @@ export async function POST(req: NextRequest) {
     ? `\n\nPerformance data: The creator's best performing platform is ${performanceData.topPlatform} with ${performanceData.engagementRate}% engagement rate. Weight your suggestions toward this platform and similar content styles that have historically performed well.`
     : '';
 
+  const screenshotSection = screenshotBase64
+    ? `\n\nIMPORTANT: An analytics screenshot has been provided. Carefully read and analyze the data in the image — follower counts, engagement rates, top posts, reach, impressions, etc. Use this real data to inform your content ideas. Prioritize content types and topics that align with what's performing well according to the screenshot.`
+    : '';
+
   const prompt = `You are a social media content strategist specializing in the vintage fashion, thrifting, and menswear niche. Generate 5 creative content ideas for a creator.
 
 Creator info:
 - Platforms: ${platforms || 'Instagram, TikTok, YouTube, Facebook'}
 - Niche/topics: ${niche || 'general'}${bioSection}
-${contextSection}${inspirationSection}${performanceSection}
+${contextSection}${inspirationSection}${performanceSection}${screenshotSection}
 
 The creator's notes/request: "${notes}"
 
@@ -44,11 +48,25 @@ For each idea, respond with a JSON array of exactly 5 objects, each with:
 
 Respond ONLY with the JSON array, no other text.`;
 
+  // Build message content — text + optional image
+  const messageContent: Anthropic.MessageParam['content'] = [];
+  if (screenshotBase64) {
+    // Extract media type and base64 data from data URL
+    const match = screenshotBase64.match(/^data:(image\/(?:png|jpeg));base64,(.+)$/);
+    if (match) {
+      messageContent.push({
+        type: 'image',
+        source: { type: 'base64', media_type: match[1] as 'image/png' | 'image/jpeg', data: match[2] },
+      });
+    }
+  }
+  messageContent.push({ type: 'text', text: prompt });
+
   try {
     const message = await client.messages.create({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 1500,
-      messages: [{ role: 'user', content: prompt }],
+      messages: [{ role: 'user', content: messageContent }],
     });
 
     const text = message.content[0].type === 'text' ? message.content[0].text : '';

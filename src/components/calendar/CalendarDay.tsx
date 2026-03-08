@@ -10,9 +10,10 @@ interface CalendarDayProps {
   events?: ThriftEventInstance[];
   onPostClick: (post: CalendarPost) => void;
   onDayClick: (date: Date) => void;
+  onEventClick?: (instance: ThriftEventInstance) => void;
 }
 
-export function CalendarDay({ date, currentMonth, posts, events = [], onPostClick, onDayClick }: CalendarDayProps) {
+export function CalendarDay({ date, currentMonth, posts, events = [], onPostClick, onDayClick, onEventClick }: CalendarDayProps) {
   const isCurrentMonth = isSameMonth(date, currentMonth);
   const today = isToday(date);
   const dayNum = date.getDate();
@@ -36,7 +37,7 @@ export function CalendarDay({ date, currentMonth, posts, events = [], onPostClic
           <PostCard key={post.id} post={post} onClick={() => onPostClick(post)} compact />
         ))}
         {posts.length < maxVisible && events.slice(0, maxVisible - posts.length).map(inst => (
-          <EventCard key={inst.event.id} instance={inst} compact />
+          <EventCard key={inst.event.id} instance={inst} compact onClick={() => onEventClick?.(inst)} />
         ))}
         {totalItems > maxVisible && (
           <p className="text-[10px] text-zinc-400 px-1">+{totalItems - maxVisible} more</p>

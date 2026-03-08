@@ -20,6 +20,8 @@ export function MilestoneWidget() {
   const { apiKey } = useApiKey();
   const [isGenerating, setIsGenerating] = useState(false);
   const [sprintPlan, setSprintPlan] = useState('');
+  const [actionItems, setActionItems] = useState<{ week: number; items: string[] }[]>([]);
+  const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const [showPlan, setShowPlan] = useState(false);
 
   const milestoneData = useMemo(() => {
@@ -65,6 +67,8 @@ export function MilestoneWidget() {
       const data = await res.json();
       if (data.plan) {
         setSprintPlan(data.plan);
+        setActionItems(data.actionItems || []);
+        setCheckedItems(new Set());
         setShowPlan(true);
       }
     } catch {
@@ -116,6 +120,40 @@ export function MilestoneWidget() {
       </Card>
 
       <Modal isOpen={showPlan} onClose={() => setShowPlan(false)} title="2-Week Growth Sprint Plan" maxWidth="max-w-2xl">
+        {/* Action Items Checklist */}
+        {actionItems.length > 0 && (
+          <div className="mb-6 space-y-4">
+            {actionItems.map(week => (
+              <div key={week.week}>
+                <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Week {week.week} Action Items</h4>
+                <div className="space-y-1.5">
+                  {week.items.map((item, i) => {
+                    const key = `w${week.week}-${i}`;
+                    const checked = checkedItems.has(key);
+                    return (
+                      <label key={key} className="flex items-start gap-2 cursor-pointer group">
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => setCheckedItems(prev => {
+                            const next = new Set(prev);
+                            checked ? next.delete(key) : next.add(key);
+                            return next;
+                          })}
+                          className="mt-0.5 rounded border-zinc-300 text-violet-600 focus:ring-violet-500"
+                        />
+                        <span className={`text-sm ${checked ? 'line-through text-zinc-400' : 'text-zinc-700 group-hover:text-zinc-900'}`}>
+                          {item}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         <div className="prose prose-sm max-w-none text-zinc-700 [&_h1]:text-zinc-900 [&_h2]:text-zinc-800 [&_h3]:text-zinc-800 [&_strong]:text-zinc-800 [&_li]:text-zinc-600">
           <pre className="whitespace-pre-wrap text-sm bg-zinc-50 rounded-lg p-4 border border-zinc-200">{sprintPlan}</pre>
         </div>

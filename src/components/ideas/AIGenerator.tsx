@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Badge } from '@/components/ui/Badge';
 import { IDEA_CATEGORIES, PLATFORM_COLORS, PLATFORM_SHORT_LABELS } from '@/lib/constants';
-import { Sparkles, Loader2, Key, Plus, Check, TrendingUp } from 'lucide-react';
+import { Sparkles, Loader2, Key, Plus, Check, TrendingUp, ImagePlus, X } from 'lucide-react';
 import { ContentIdea, GeneratedIdea } from '@/types/ideas';
 import { Platform } from '@/types/common';
 import { IdeaDeepDiveModal } from './IdeaDeepDiveModal';
@@ -44,6 +44,8 @@ export function AIGenerator({ onAddIdea }: AIGeneratorProps) {
   }, [analyticsEntries]);
 
   const [notes, setNotes] = useState('');
+  const [screenshotBase64, setScreenshotBase64] = useState<string | null>(null);
+  const [screenshotName, setScreenshotName] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedIdeas, setGeneratedIdeas] = useState<GeneratedIdea[]>([]);
   const [addedIds, setAddedIds] = useState<Set<number>>(new Set());
@@ -54,6 +56,19 @@ export function AIGenerator({ onAddIdea }: AIGeneratorProps) {
   // Deep dive state
   const [deepDiveIdea, setDeepDiveIdea] = useState<GeneratedIdea | null>(null);
   const [isDeepDiveOpen, setIsDeepDiveOpen] = useState(false);
+
+  const handleScreenshotUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setScreenshotName(file.name);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      // Extract base64 data after the prefix
+      setScreenshotBase64(result);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSaveKey = () => {
     setApiKey(keyInput);
@@ -101,6 +116,7 @@ export function AIGenerator({ onAddIdea }: AIGeneratorProps) {
             topPlatform: performanceInsight.topPlatform,
             engagementRate: performanceInsight.engagementRate,
           } : undefined,
+          screenshotBase64: screenshotBase64 || undefined,
         }),
       });
 
@@ -205,6 +221,25 @@ export function AIGenerator({ onAddIdea }: AIGeneratorProps) {
             </p>
           </div>
         )}
+
+        {/* Analytics screenshot upload */}
+        <div className="mt-3">
+          {screenshotBase64 ? (
+            <div className="flex items-center gap-2 bg-violet-50 border border-violet-200 rounded-lg px-3 py-2">
+              <ImagePlus className="w-3.5 h-3.5 text-violet-600 shrink-0" />
+              <span className="text-xs text-violet-700 flex-1 truncate">{screenshotName}</span>
+              <button onClick={() => { setScreenshotBase64(null); setScreenshotName(''); }} className="text-violet-400 hover:text-violet-600">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
+            <label className="flex items-center gap-2 text-xs text-zinc-500 cursor-pointer hover:text-violet-600 transition-colors">
+              <ImagePlus className="w-4 h-4" />
+              Upload Analytics Screenshot (PNG/JPG)
+              <input type="file" accept="image/png,image/jpeg" onChange={handleScreenshotUpload} className="hidden" />
+            </label>
+          )}
+        </div>
 
         <div className="flex gap-2 mt-3">
           <Button
