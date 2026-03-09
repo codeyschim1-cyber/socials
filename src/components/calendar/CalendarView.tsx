@@ -2,8 +2,9 @@
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useCalendarPosts } from '@/hooks/useCalendarPosts';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { STORAGE_KEYS } from '@/lib/storage-keys';
+import { useCustomEvents } from '@/hooks/useCustomEvents';
+import { useAttendedEvents } from '@/hooks/useAttendedEvents';
+import { useUserSettings } from '@/hooks/useUserSettings';
 import { MonthGrid } from './MonthGrid';
 import { WeekView } from './WeekView';
 import { ThreeDayView } from './ThreeDayView';
@@ -13,7 +14,7 @@ import { EventSearch } from './EventSearch';
 import { PostFormModal } from './PostFormModal';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
-import { CalendarPost, ThriftEvent, ThriftEventInstance } from '@/types/calendar';
+import { CalendarPost, ThriftEventInstance } from '@/types/calendar';
 import { PLATFORM_OPTIONS } from '@/lib/constants';
 import { getEventsForMonth } from '@/lib/event-utils';
 import { useApiKey } from '@/hooks/useApiKey';
@@ -27,7 +28,9 @@ import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 
 export function CalendarView() {
   const { posts, addPost, updatePost, deletePost } = useCalendarPosts();
-  const [attendedEvents, setAttendedEvents] = useLocalStorage<string[]>(STORAGE_KEYS.ATTENDED_EVENTS, []);
+  const { customEvents, addCustomEvent, addBulkEvents } = useCustomEvents();
+  const { attendedEvents, markAttended, unmarkAttended } = useAttendedEvents();
+  const { lastAutoSearch, setLastAutoSearch } = useUserSettings();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<'month' | 'week' | '3day'>('month');
   const [selectedEvent, setSelectedEvent] = useState<ThriftEventInstance | null>(null);
@@ -38,7 +41,6 @@ export function CalendarView() {
   const { mediaKit } = useMediaKit();
   const [filterPlatform, setFilterPlatform] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [eventVersion, setEventVersion] = useState(0);
   const [autoSearchToast, setAutoSearchToast] = useState('');
 
   const filteredPosts = useMemo(() => {
@@ -49,19 +51,17 @@ export function CalendarView() {
     });
   }, [posts, filterPlatform, filterStatus]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const monthEvents = useMemo(() => getEventsForMonth(currentDate), [currentDate, eventVersion]);
+  const monthEvents = useMemo(() => getEventsForMonth(currentDate, customEvents), [currentDate, customEvents]);
 
   // Auto-refresh on Sundays
   useEffect(() => {
     const today = new Date();
     if (today.getDay() !== 0 || !apiKey) return; // 0 = Sunday
     const todayKey = format(today, 'yyyy-MM-dd');
-    const lastRun = localStorage.getItem(STORAGE_KEYS.LAST_AUTO_SEARCH);
-    if (lastRun === todayKey) return;
+    if (lastAutoSearch === todayKey) return;
 
     const location = mediaKit.location || 'NYC';
-    localStorage.setItem(STORAGE_KEYS.LAST_AUTO_SEARCH, todayKey);
+    setLastAutoSearch(todayKey);
 
     (async () => {
       try {
@@ -72,52 +72,26 @@ export function CalendarView() {
         });
         const data = await res.json();
         if (data.events && data.events.length > 0) {
-          const stored = localStorage.getItem(STORAGE_KEYS.CUSTOM_EVENTS);
-          const existing: ThriftEvent[] = stored ? JSON.parse(stored) : [];
-          const existingDates = new Set(existing.flatMap(e => e.recurrence.type === 'dates' ? e.recurrence.dates : []));
-          let added = 0;
-          for (const evt of data.events) {
-            if (!existingDates.has(evt.date)) {
-              existing.push({
-                id: `auto-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-                name: evt.name,
-                description: evt.description || '',
-                location: evt.location || '',
-                state: evt.state || '',
-                time: evt.time,
-                recurrence: { type: 'dates', dates: [evt.date] },
-              });
-              added++;
-            }
-          }
-          if (added > 0) {
-            localStorage.setItem(STORAGE_KEYS.CUSTOM_EVENTS, JSON.stringify(existing));
-            setEventVersion(v => v + 1);
+          const added = await addBulkEvents(data.events);
+          if (added && added > 0) {
             setAutoSearchToast(`Found ${added} new event${added > 1 ? 's' : ''} near ${location}`);
             setTimeout(() => setAutoSearchToast(''), 5000);
           }
         }
       } catch { /* silently fail */ }
     })();
-  }, [apiKey, mediaKit.location]);
+  }, [apiKey, mediaKit.location, lastAutoSearch, setLastAutoSearch, addBulkEvents]);
 
   const handleAddSearchEvent = useCallback((event: { name: string; date: string; location: string; state: string; description: string; time?: string }) => {
-    const customEvent: ThriftEvent = {
-      id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    addCustomEvent({
       name: event.name,
       description: event.description,
       location: event.location,
       state: event.state,
       time: event.time,
-      recurrence: { type: 'dates', dates: [event.date] },
-    };
-    // Add to localStorage custom events
-    const stored = localStorage.getItem('creatorhub_custom_events');
-    const existing: ThriftEvent[] = stored ? JSON.parse(stored) : [];
-    existing.push(customEvent);
-    localStorage.setItem('creatorhub_custom_events', JSON.stringify(existing));
-    setEventVersion(v => v + 1);
-  }, []);
+      dates: [event.date],
+    });
+  }, [addCustomEvent]);
 
   const handleEventClick = (instance: ThriftEventInstance) => {
     setSelectedEvent(instance);
@@ -155,7 +129,7 @@ export function CalendarView() {
   };
 
   const handleAttend = useCallback((eventId: string, eventName: string, eventDate: string) => {
-    setAttendedEvents(prev => [...prev, eventId]);
+    markAttended(eventId);
     const eventDay = parseISO(eventDate);
     const drafts: Omit<CalendarPost, 'id' | 'createdAt' | 'updatedAt'>[] = [
       {
@@ -187,13 +161,13 @@ export function CalendarView() {
       },
     ];
     drafts.forEach(draft => addPost(draft));
-  }, [setAttendedEvents, addPost]);
+  }, [markAttended, addPost]);
 
   const handleUnattend = useCallback((eventId: string) => {
-    setAttendedEvents(prev => prev.filter(id => id !== eventId));
+    unmarkAttended(eventId);
     // Remove all auto-created posts for this event
     posts.filter(p => p.tags.includes(`event:${eventId}`)).forEach(p => deletePost(p.id));
-  }, [setAttendedEvents, posts, deletePost]);
+  }, [unmarkAttended, posts, deletePost]);
 
   return (
     <div>

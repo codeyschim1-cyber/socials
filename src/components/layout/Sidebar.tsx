@@ -4,9 +4,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, CalendarDays, BarChart3, Lightbulb,
-  Handshake, UserCircle, ChevronLeft, ChevronRight, Sparkles
+  Handshake, UserCircle, ChevronLeft, ChevronRight, Sparkles, LogOut
 } from 'lucide-react';
 import { useState } from 'react';
+import { useAuthContext } from '@/components/auth/AuthProvider';
 
 const NAV_ITEMS = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -19,6 +20,7 @@ const NAV_ITEMS = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { signOut } = useAuthContext();
   const [collapsed, setCollapsed] = useState(false);
 
   return (
@@ -48,12 +50,21 @@ export function Sidebar() {
         })}
       </nav>
 
-      <button
-        onClick={() => setCollapsed(c => !c)}
-        className="flex items-center justify-center h-12 border-t border-zinc-200 text-zinc-400 hover:text-zinc-700 transition-colors"
-      >
-        {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-      </button>
+      <div className="border-t border-zinc-200">
+        <button
+          onClick={signOut}
+          className={`flex items-center gap-3 w-full px-4 py-2.5 text-zinc-400 hover:text-red-600 hover:bg-red-50 transition-colors ${collapsed ? 'justify-center px-0' : ''}`}
+        >
+          <LogOut className="w-4 h-4 shrink-0" />
+          {!collapsed && <span className="text-sm font-medium">Sign Out</span>}
+        </button>
+        <button
+          onClick={() => setCollapsed(c => !c)}
+          className="flex items-center justify-center w-full h-10 text-zinc-400 hover:text-zinc-700 transition-colors"
+        >
+          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+        </button>
+      </div>
     </aside>
   );
 }

@@ -1,24 +1,73 @@
 'use client';
 
-import { useLocalStorage } from './useLocalStorage';
-import { STORAGE_KEYS } from '@/lib/storage-keys';
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/lib/supabase';
+import { useAuthContext } from '@/components/auth/AuthProvider';
 import { HashtagSet } from '@/types/ideas';
-import { v4 as uuid } from 'uuid';
+
+function mapRow(r: Record<string, unknown>): HashtagSet {
+  return {
+    id: r.id as string,
+    name: r.name as string,
+    hashtags: (r.hashtags as string[]) || [],
+    platform: r.platform as HashtagSet['platform'],
+    createdAt: r.created_at as string,
+  };
+}
 
 export function useHashtags() {
-  const [sets, setSets] = useLocalStorage<HashtagSet[]>(STORAGE_KEYS.HASHTAG_SETS, []);
+  const { user } = useAuthContext();
+  const [sets, setSets] = useState<HashtagSet[]>([]);
 
-  const addSet = (set: Omit<HashtagSet, 'id' | 'createdAt'>) => {
-    setSets(prev => [...prev, { ...set, id: uuid(), createdAt: new Date().toISOString() }]);
-  };
+  const fetchSets = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('hashtag_sets')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+    if (data) setSets(data.map(mapRow));
+  }, [user]);
 
-  const updateSet = (id: string, updates: Partial<HashtagSet>) => {
-    setSets(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s));
-  };
+  useEffect(() => { fetchSets(); }, [fetchSets]);
 
-  const deleteSet = (id: string) => {
+  const addSet = useCallback(async (set: Omit<HashtagSet, 'id' | 'createdAt'>) => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('hashtag_sets')
+      .insert({
+        user_id: user.id,
+        name: set.name,
+        hashtags: set.hashtags,
+        platform: set.platform,
+      })
+      .select()
+      .single();
+    if (data) setSets(prev => [mapRow(data), ...prev]);
+  }, [user]);
+
+  const updateSet = useCallback(async (id: string, updates: Partial<HashtagSet>) => {
+    if (!user) return;
+    const dbUpdates: Record<string, unknown> = {};
+    if (updates.name !== undefined) dbUpdates.name = updates.name;
+    if (updates.hashtags !== undefined) dbUpdates.hashtags = updates.hashtags;
+    if (updates.platform !== undefined) dbUpdates.platform = updates.platform;
+
+    const { data } = await supabase
+      .from('hashtag_sets')
+      .update(dbUpdates)
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .select()
+      .single();
+    if (data) setSets(prev => prev.map(s => s.id === id ? mapRow(data) : s));
+  }, [user]);
+
+  const deleteSet = useCallback(async (id: string) => {
+    if (!user) return;
+    await supabase.from('hashtag_sets').delete().eq('id', id).eq('user_id', user.id);
     setSets(prev => prev.filter(s => s.id !== id));
-  };
+  }, [user]);
 
   return { sets, addSet, updateSet, deleteSet };
 }

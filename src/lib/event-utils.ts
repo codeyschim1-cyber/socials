@@ -3,7 +3,6 @@ import {
 } from 'date-fns';
 import { ThriftEvent, ThriftEventInstance } from '@/types/calendar';
 import { THRIFT_EVENTS } from '@/data/thrift-events';
-import { STORAGE_KEYS } from './storage-keys';
 
 function isInSeason(event: ThriftEvent, month: number): boolean {
   if (event.seasonStart == null || event.seasonEnd == null) return true;
@@ -34,7 +33,7 @@ function getNthWeekdayOfMonth(
   return null;
 }
 
-export function getEventsForMonth(currentDate: Date): ThriftEventInstance[] {
+export function getEventsForMonth(currentDate: Date, customEvents: ThriftEvent[] = []): ThriftEventInstance[] {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth() + 1; // 1-indexed
   const monthStart = startOfMonth(currentDate);
@@ -68,24 +67,16 @@ export function getEventsForMonth(currentDate: Date): ThriftEventInstance[] {
     }
   }
 
-  // Merge custom events from localStorage
-  if (typeof window !== 'undefined') {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEYS.CUSTOM_EVENTS);
-      if (stored) {
-        const customEvents: ThriftEvent[] = JSON.parse(stored);
-        const prefix = format(monthStart, 'yyyy-MM');
-        for (const event of customEvents) {
-          if (event.recurrence.type === 'dates') {
-            for (const d of event.recurrence.dates) {
-              if (d.startsWith(prefix)) {
-                instances.push({ event, date: d });
-              }
-            }
-          }
+  // Merge custom events passed as parameter
+  const prefix = format(monthStart, 'yyyy-MM');
+  for (const event of customEvents) {
+    if (event.recurrence.type === 'dates') {
+      for (const d of event.recurrence.dates) {
+        if (d.startsWith(prefix)) {
+          instances.push({ event, date: d });
         }
       }
-    } catch { /* ignore parse errors */ }
+    }
   }
 
   instances.sort((a, b) => a.date.localeCompare(b.date));
