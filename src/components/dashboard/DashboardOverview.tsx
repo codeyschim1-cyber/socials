@@ -90,10 +90,12 @@ export function DashboardOverview() {
           const latest = latestByPlatform[p.key];
           const isEditing = editingPlatform === p.key;
 
-          const handleSave = () => {
+          const handleSave = async () => {
+            if (editingPlatform !== p.key) return; // guard double-fire
             const val = parseInt(editValue, 10);
             if (!isNaN(val) && val >= 0) {
-              addEntry({
+              setEditingPlatform(null);
+              await addEntry({
                 platform: p.key,
                 date: new Date().toISOString().split('T')[0],
                 followers: val,
@@ -104,8 +106,9 @@ export function DashboardOverview() {
                 shares: 0,
                 views: 0,
               });
+            } else {
+              setEditingPlatform(null);
             }
-            setEditingPlatform(null);
           };
 
           return (
