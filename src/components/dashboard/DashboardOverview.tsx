@@ -32,6 +32,7 @@ export function DashboardOverview() {
   const { entries: analyticsEntries, addEntry } = useAnalytics();
   const [editingPlatform, setEditingPlatform] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
+  const [saveError, setSaveError] = useState<string | null>(null);
   const { ideas } = useIdeas();
   const { entries: incomeEntries, goals } = useIncome();
   const { deals } = useBrandDeals();
@@ -84,6 +85,13 @@ export function DashboardOverview() {
         </div>
       </div>
 
+      {/* Save error */}
+      {saveError && (
+        <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-2">
+          Save failed: {saveError}
+        </div>
+      )}
+
       {/* Platform stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {PLATFORMS.map(p => {
@@ -93,9 +101,10 @@ export function DashboardOverview() {
           const handleSave = async () => {
             if (editingPlatform !== p.key) return; // guard double-fire
             const val = parseInt(editValue, 10);
+            setEditingPlatform(null);
+            setSaveError(null);
             if (!isNaN(val) && val >= 0) {
-              setEditingPlatform(null);
-              await addEntry({
+              const err = await addEntry({
                 platform: p.key,
                 date: new Date().toISOString().split('T')[0],
                 followers: val,
@@ -106,8 +115,7 @@ export function DashboardOverview() {
                 shares: 0,
                 views: 0,
               });
-            } else {
-              setEditingPlatform(null);
+              if (err) setSaveError(`${p.label}: ${err}`);
             }
           };
 

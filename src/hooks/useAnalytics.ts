@@ -39,10 +39,10 @@ export function useAnalytics() {
 
   useEffect(() => { fetchEntries(); }, [fetchEntries]);
 
-  const addEntry = useCallback(async (entry: Omit<MetricEntry, 'id' | 'createdAt' | 'engagementRate'>) => {
-    if (!user) return;
+  const addEntry = useCallback(async (entry: Omit<MetricEntry, 'id' | 'createdAt' | 'engagementRate'>): Promise<string | null> => {
+    if (!user) return 'Not logged in';
     const engagementRate = calculateEngagementRate(entry.likes, entry.comments, entry.shares, entry.followers);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('analytics_entries')
       .insert({
         user_id: user.id,
@@ -61,6 +61,7 @@ export function useAnalytics() {
       })
       .select()
       .single();
+    if (error) return error.message;
     if (data) {
       setEntries(prev => [{
         id: data.id,
@@ -79,6 +80,7 @@ export function useAnalytics() {
         createdAt: data.created_at,
       }, ...prev]);
     }
+    return null;
   }, [user]);
 
   const deleteEntry = useCallback(async (id: string) => {
