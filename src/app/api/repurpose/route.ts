@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
+import { CREATOR_VOICE_PROFILE } from '@/lib/creator-context';
 
 export async function POST(req: NextRequest) {
   const { apiKey, title, description, originalPlatform } = await req.json();
@@ -10,7 +11,9 @@ export async function POST(req: NextRequest) {
 
   const client = new Anthropic({ apiKey });
 
-  const prompt = `You are a social media content repurposing expert for a vintage fashion and thrifting creator. Take the following content idea and create platform-optimized versions for all 4 platforms.
+  const prompt = `${CREATOR_VOICE_PROFILE}
+
+You are a content repurposing expert for this creator. Match their voice and style. Take the following content idea and create platform-optimized versions for all 4 platforms.
 
 Original content:
 - Title: "${title}"

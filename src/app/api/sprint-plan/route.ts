@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
+import { CREATOR_VOICE_PROFILE } from '@/lib/creator-context';
 
 export async function POST(req: NextRequest) {
   const { apiKey, milestones } = await req.json();
@@ -14,7 +15,9 @@ export async function POST(req: NextRequest) {
     `- ${m.platform}: ${m.current.toLocaleString()} → ${m.goal.toLocaleString()} (${m.weeksAway})`
   ).join('\n');
 
-  const prompt = `You are a social media growth strategist for a vintage fashion and thrifting creator. Create a 2-week content sprint plan to accelerate follower growth.
+  const prompt = `${CREATOR_VOICE_PROFILE}
+
+You are a social media growth strategist for this creator. Create a 2-week content sprint plan to accelerate follower growth.
 
 Current milestone progress:
 ${milestoneList}

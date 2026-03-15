@@ -1,51 +1,33 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useApiKey } from '@/hooks/useApiKey';
-import { useContentLibrary } from '@/hooks/useContentLibrary';
-import { useMediaKit } from '@/hooks/useMediaKit';
-import { useAnalytics } from '@/hooks/useAnalytics';
-import { getLatestEntry } from '@/lib/analytics-utils';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
+import { Select } from '@/components/ui/Select';
 import { Badge } from '@/components/ui/Badge';
 import { IDEA_CATEGORIES, PLATFORM_COLORS, PLATFORM_SHORT_LABELS } from '@/lib/constants';
-import { Sparkles, Loader2, Key, Plus, Check, TrendingUp, ImagePlus, X } from 'lucide-react';
+import { Sparkles, Loader2, Key, Plus, Check, Camera, Film } from 'lucide-react';
 import { ContentIdea, GeneratedIdea } from '@/types/ideas';
-import { Platform } from '@/types/common';
 import { IdeaDeepDiveModal } from './IdeaDeepDiveModal';
 
 interface AIGeneratorProps {
   onAddIdea: (idea: Omit<ContentIdea, 'id' | 'createdAt' | 'updatedAt' | 'isFavorite'>) => void;
 }
 
+const PLATFORM_OPTIONS = [
+  { value: 'instagram', label: 'Instagram' },
+  { value: 'tiktok', label: 'TikTok' },
+  { value: 'youtube', label: 'YouTube' },
+  { value: 'all', label: 'All Platforms' },
+];
+
 export function AIGenerator({ onAddIdea }: AIGeneratorProps) {
   const { apiKey, setApiKey } = useApiKey();
-  const { entries: contentLibrary } = useContentLibrary();
-  const { mediaKit } = useMediaKit();
-  const { entries: analyticsEntries } = useAnalytics();
 
-  const performanceInsight = useMemo(() => {
-    const platforms = ['instagram', 'tiktok', 'youtube', 'facebook'] as const;
-    const platformStats = platforms.map(p => {
-      const latest = getLatestEntry(analyticsEntries, p);
-      return { platform: p, engagementRate: latest?.engagementRate ?? 0, followers: latest?.followers ?? 0 };
-    }).filter(p => p.followers > 0);
-
-    if (platformStats.length === 0) return null;
-    const best = platformStats.sort((a, b) => b.engagementRate - a.engagementRate)[0];
-    return {
-      topPlatform: best.platform,
-      engagementRate: best.engagementRate,
-      summary: `${best.platform.charAt(0).toUpperCase() + best.platform.slice(1)} (${best.engagementRate}% eng.)`,
-    };
-  }, [analyticsEntries]);
-
-  const [notes, setNotes] = useState('');
-  const [screenshotBase64, setScreenshotBase64] = useState<string | null>(null);
-  const [screenshotName, setScreenshotName] = useState('');
+  const [mode, setMode] = useState<'pre-shoot' | 'post-shoot'>('pre-shoot');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedIdeas, setGeneratedIdeas] = useState<GeneratedIdea[]>([]);
   const [addedIds, setAddedIds] = useState<Set<number>>(new Set());
@@ -53,22 +35,16 @@ export function AIGenerator({ onAddIdea }: AIGeneratorProps) {
   const [showKeyInput, setShowKeyInput] = useState(false);
   const [keyInput, setKeyInput] = useState('');
 
+  // Pre-shoot state
+  const [location, setLocation] = useState('');
+  const [platform, setPlatform] = useState('instagram');
+
+  // Post-shoot state
+  const [rawNotes, setRawNotes] = useState('');
+
   // Deep dive state
   const [deepDiveIdea, setDeepDiveIdea] = useState<GeneratedIdea | null>(null);
   const [isDeepDiveOpen, setIsDeepDiveOpen] = useState(false);
-
-  const handleScreenshotUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setScreenshotName(file.name);
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      // Extract base64 data after the prefix
-      setScreenshotBase64(result);
-    };
-    reader.readAsDataURL(file);
-  };
 
   const handleSaveKey = () => {
     setApiKey(keyInput);
@@ -81,12 +57,15 @@ export function AIGenerator({ onAddIdea }: AIGeneratorProps) {
       setShowKeyInput(true);
       return;
     }
-    if (!notes.trim()) return;
 
     setIsGenerating(true);
     setError('');
     setGeneratedIdeas([]);
     setAddedIds(new Set());
+
+    const notes = mode === 'pre-shoot'
+      ? `PRE-SHOOT MODE: I'm about to visit "${location}". Platform: ${platform}. Give me hook concepts, content angles, and a posting strategy for this location. Think about what makes this place special, what shots to get, and how to build anticipation.`
+      : `POST-SHOOT MODE: Here are my raw notes/thoughts from today's shoot:\n\n${rawNotes}\n\nTurn these into content angles, hook options, a TikTok script, and a caption with hashtags. Give me multiple ways to cut and frame this footage.`;
 
     try {
       const res = await fetch('/api/generate-ideas', {
@@ -95,28 +74,8 @@ export function AIGenerator({ onAddIdea }: AIGeneratorProps) {
         body: JSON.stringify({
           apiKey,
           notes,
-          contentContext: contentLibrary.slice(0, 20).map(c => ({
-            title: c.title,
-            platform: c.platform,
-            notes: c.notes,
-            url: c.url,
-          })),
-          platforms: mediaKit.instagramHandle || mediaKit.tiktokHandle || mediaKit.youtubeHandle || mediaKit.facebookHandle
-            ? [
-              mediaKit.instagramHandle && 'Instagram',
-              mediaKit.tiktokHandle && 'TikTok',
-              mediaKit.youtubeHandle && 'YouTube',
-              mediaKit.facebookHandle && 'Facebook',
-            ].filter(Boolean).join(', ')
-            : undefined,
-          niche: mediaKit.niche.length > 0 ? mediaKit.niche.join(', ') : undefined,
-          creatorBio: mediaKit.bio || undefined,
-          inspirationCreators: mediaKit.inspirationCreators?.length > 0 ? mediaKit.inspirationCreators : undefined,
-          performanceData: performanceInsight ? {
-            topPlatform: performanceInsight.topPlatform,
-            engagementRate: performanceInsight.engagementRate,
-          } : undefined,
-          screenshotBase64: screenshotBase64 || undefined,
+          platforms: platform,
+          niche: 'vintage fashion, thrifting, menswear',
         }),
       });
 
@@ -155,6 +114,8 @@ export function AIGenerator({ onAddIdea }: AIGeneratorProps) {
     setIsDeepDiveOpen(true);
   };
 
+  const canGenerate = mode === 'pre-shoot' ? location.trim() : rawNotes.trim();
+
   return (
     <div className="space-y-4">
       {/* API key setup */}
@@ -164,7 +125,7 @@ export function AIGenerator({ onAddIdea }: AIGeneratorProps) {
             <Key className="w-5 h-5 text-violet-600 shrink-0" />
             <div className="flex-1">
               <p className="text-sm text-zinc-800">Connect your Anthropic API key to enable AI-powered idea generation.</p>
-              <p className="text-xs text-zinc-400 mt-1">Your key is stored locally and never sent to our servers.</p>
+              <p className="text-xs text-zinc-400 mt-1">Your key is stored securely and never sent to our servers.</p>
             </div>
             <Button size="sm" onClick={() => setShowKeyInput(true)}>Set Key</Button>
           </div>
@@ -188,11 +149,11 @@ export function AIGenerator({ onAddIdea }: AIGeneratorProps) {
         </Card>
       )}
 
-      {/* Generator */}
+      {/* Mode toggle */}
       <Card>
-        <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center gap-2 mb-4">
           <Sparkles className="w-5 h-5 text-violet-600" />
-          <h3 className="text-sm font-semibold text-zinc-800">AI Idea Generator</h3>
+          <h3 className="text-sm font-semibold text-zinc-800">AI Content Generator</h3>
           {apiKey && (
             <button onClick={() => setShowKeyInput(true)} className="ml-auto text-xs text-zinc-400 hover:text-zinc-500 transition-colors">
               Change API Key
@@ -200,57 +161,69 @@ export function AIGenerator({ onAddIdea }: AIGeneratorProps) {
           )}
         </div>
 
-        <Textarea
-          value={notes}
-          onChange={e => setNotes(e.target.value)}
-          placeholder="Tell the AI what kind of content you want ideas for... e.g. 'I want to create content about morning routines that are relatable for college students' or 'Give me trending reel ideas for a fitness account'"
-          rows={3}
-        />
+        {/* Mode selector */}
+        <div className="flex bg-surface-elevated rounded-lg p-0.5 mb-4">
+          <button
+            onClick={() => setMode('pre-shoot')}
+            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium rounded-md transition-colors ${
+              mode === 'pre-shoot' ? 'bg-violet-600 text-white' : 'text-zinc-400 hover:text-zinc-800'
+            }`}
+          >
+            <Camera className="w-3.5 h-3.5" /> Pre-Shoot
+          </button>
+          <button
+            onClick={() => setMode('post-shoot')}
+            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium rounded-md transition-colors ${
+              mode === 'post-shoot' ? 'bg-violet-600 text-white' : 'text-zinc-400 hover:text-zinc-800'
+            }`}
+          >
+            <Film className="w-3.5 h-3.5" /> Post-Shoot
+          </button>
+        </div>
 
-        {contentLibrary.length > 0 && (
-          <p className="text-xs text-zinc-400 mt-2">
-            AI will also reference your {contentLibrary.length} saved content entries for context.
-          </p>
-        )}
-
-        {performanceInsight && (
-          <div className="flex items-center gap-2 mt-2 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
-            <TrendingUp className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-            <p className="text-xs text-emerald-700">
-              Based on your top performing content: <span className="font-semibold">{performanceInsight.summary}</span>
-            </p>
+        {/* Pre-shoot mode */}
+        {mode === 'pre-shoot' && (
+          <div className="space-y-3">
+            <p className="text-xs text-zinc-500">Heading to a location? Get hook concepts and posting strategy before you shoot.</p>
+            <Input
+              label="Location / Store / Event"
+              value={location}
+              onChange={e => setLocation(e.target.value)}
+              placeholder="e.g. L Train Vintage Brooklyn, ThriftCon NYC, Goodwill Bins Portland..."
+            />
+            <Select
+              label="Primary Platform"
+              options={PLATFORM_OPTIONS}
+              value={platform}
+              onChange={e => setPlatform(e.target.value)}
+            />
           </div>
         )}
 
-        {/* Analytics screenshot upload */}
-        <div className="mt-3">
-          {screenshotBase64 ? (
-            <div className="flex items-center gap-2 bg-violet-50 border border-violet-200 rounded-lg px-3 py-2">
-              <ImagePlus className="w-3.5 h-3.5 text-violet-600 shrink-0" />
-              <span className="text-xs text-violet-700 flex-1 truncate">{screenshotName}</span>
-              <button onClick={() => { setScreenshotBase64(null); setScreenshotName(''); }} className="text-violet-400 hover:text-violet-600">
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ) : (
-            <label className="flex items-center gap-2 text-xs text-zinc-500 cursor-pointer hover:text-violet-600 transition-colors">
-              <ImagePlus className="w-4 h-4" />
-              Upload Analytics Screenshot (PNG/JPG)
-              <input type="file" accept="image/png,image/jpeg" onChange={handleScreenshotUpload} className="hidden" />
-            </label>
-          )}
-        </div>
+        {/* Post-shoot mode */}
+        {mode === 'post-shoot' && (
+          <div className="space-y-3">
+            <p className="text-xs text-zinc-500">Just finished shooting? Dump your raw notes and get content angles, hooks, scripts, and captions.</p>
+            <Textarea
+              label="Raw Notes"
+              value={rawNotes}
+              onChange={e => setRawNotes(e.target.value)}
+              placeholder="Dump everything here — what you found, prices, reactions, cool moments, store vibes, anything notable. The messier the better, AI will organize it."
+              rows={5}
+            />
+          </div>
+        )}
 
-        <div className="flex gap-2 mt-3">
+        <div className="flex gap-2 mt-4">
           <Button
             size="sm"
             onClick={handleGenerate}
-            disabled={isGenerating || !notes.trim()}
+            disabled={isGenerating || !canGenerate}
           >
             {isGenerating ? (
               <><Loader2 className="w-4 h-4 animate-spin" /> Generating...</>
             ) : (
-              <><Sparkles className="w-4 h-4" /> Generate Ideas</>
+              <><Sparkles className="w-4 h-4" /> {mode === 'pre-shoot' ? 'Get Shot Plan' : 'Generate Content'}</>
             )}
           </Button>
           {generatedIdeas.length > 0 && (
@@ -269,7 +242,9 @@ export function AIGenerator({ onAddIdea }: AIGeneratorProps) {
       {generatedIdeas.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Generated Ideas</h3>
+            <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+              {mode === 'pre-shoot' ? 'Shot Plan & Content Ideas' : 'Content From Your Shoot'}
+            </h3>
             <p className="text-xs text-zinc-400">Click a card for a full production plan</p>
           </div>
           {generatedIdeas.map((idea, i) => {

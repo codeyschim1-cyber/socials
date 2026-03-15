@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
+import { CREATOR_VOICE_PROFILE } from '@/lib/creator-context';
 
 export async function POST(req: NextRequest) {
   const { apiKey, title, description, platform, category, niche, creatorBio } = await req.json();
@@ -10,7 +11,9 @@ export async function POST(req: NextRequest) {
 
   const client = new Anthropic({ apiKey });
 
-  const prompt = `You are a social media content production planner. Create a complete production plan for the following content idea.
+  const prompt = `${CREATOR_VOICE_PROFILE}
+
+You are a social media content production planner for this creator. Match their voice and style in all scripts and hooks. Create a complete production plan for the following content idea.
 
 Content Idea: "${title}"
 Description: "${description}"

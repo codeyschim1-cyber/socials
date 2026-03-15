@@ -6,16 +6,23 @@ import { useAnalytics } from '@/hooks/useAnalytics';
 import { useIdeas } from '@/hooks/useIdeas';
 import { useIncome } from '@/hooks/useIncome';
 import { useBrandDeals } from '@/hooks/useBrandDeals';
+import { usePerformanceLog } from '@/hooks/usePerformanceLog';
+import { useStoreLog } from '@/hooks/useStoreLog';
+import { useContentPillars } from '@/hooks/useContentPillars';
+import { useApiKey } from '@/hooks/useApiKey';
 import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
 import { Badge, PlatformBadge } from '@/components/ui/Badge';
+import { Modal } from '@/components/ui/Modal';
 import { LineChartWrapper } from '@/components/charts/LineChartWrapper';
 import { getLatestEntry, getGrowthData } from '@/lib/analytics-utils';
 import { getMonthlyRevenue, getGoalProgress } from '@/lib/revenue-utils';
-import { STATUS_COLORS, STATUS_LABELS, CHART_COLORS, IDEA_CATEGORIES, DEAL_STATUS_COLORS, DEAL_STATUS_LABELS } from '@/lib/constants';
-import { format, parseISO } from 'date-fns';
+import { STATUS_COLORS, STATUS_LABELS, CHART_COLORS, IDEA_CATEGORIES, DEAL_STATUS_COLORS, DEAL_STATUS_LABELS, PLATFORM_COLORS, PLATFORM_SHORT_LABELS } from '@/lib/constants';
+import { format, parseISO, addDays } from 'date-fns';
 import {
   Users, TrendingUp, CalendarDays, DollarSign,
-  Lightbulb, Handshake, ArrowUpRight, Sparkles
+  Lightbulb, Handshake, ArrowUpRight, Sparkles,
+  CalendarPlus, Loader2, Check
 } from 'lucide-react';
 import Link from 'next/link';
 import { MilestoneWidget } from './MilestoneWidget';
@@ -27,8 +34,18 @@ const PLATFORMS = [
   { key: 'facebook' as const, label: 'Facebook', color: 'text-blue-600' },
 ];
 
+interface Recommendation {
+  day: string;
+  platform: string;
+  pillar: string;
+  format: string;
+  concept: string;
+  hook: string;
+  reasoning: string;
+}
+
 export function DashboardOverview() {
-  const { posts } = useCalendarPosts();
+  const { posts, addPost } = useCalendarPosts();
   const { entries: analyticsEntries, addEntry } = useAnalytics();
   const [editingPlatform, setEditingPlatform] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
@@ -36,6 +53,17 @@ export function DashboardOverview() {
   const { ideas } = useIdeas();
   const { entries: incomeEntries, goals } = useIncome();
   const { deals } = useBrandDeals();
+  const { entries: perfEntries } = usePerformanceLog();
+  const { stores } = useStoreLog();
+  const { pillars } = useContentPillars();
+  const { apiKey } = useApiKey();
+
+  // Weekly recommendations state
+  const [isRecsOpen, setIsRecsOpen] = useState(false);
+  const [recs, setRecs] = useState<Recommendation[]>([]);
+  const [isRecsLoading, setIsRecsLoading] = useState(false);
+  const [recsError, setRecsError] = useState('');
+  const [savedRecs, setSavedRecs] = useState<Set<number>>(new Set());
 
   const latestByPlatform = Object.fromEntries(
     PLATFORMS.map(p => [p.key, getLatestEntry(analyticsEntries, p.key)])
@@ -74,15 +102,72 @@ export function DashboardOverview() {
       .map(([date, data]) => ({ date: format(parseISO(date), 'M/d'), ...data }));
   })();
 
+  const handleGetRecs = async () => {
+    if (!apiKey) return;
+    setIsRecsLoading(true);
+    setRecsError('');
+    setRecs([]);
+    setSavedRecs(new Set());
+    setIsRecsOpen(true);
+
+    try {
+      const res = await fetch('/api/weekly-recommendations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          apiKey,
+          performanceData: perfEntries.slice(0, 10),
+          storeData: stores.slice(0, 15),
+          pillars: pillars.map(p => ({ name: p.name, description: p.description })),
+          recentPosts: posts.slice(0, 10).map(p => ({ title: p.title, platform: p.platform, scheduledDate: p.scheduledDate })),
+        }),
+      });
+      const data = await res.json();
+      if (data.error) setRecsError(data.error);
+      else setRecs(data.recommendations);
+    } catch {
+      setRecsError('Failed to generate recommendations.');
+    } finally {
+      setIsRecsLoading(false);
+    }
+  };
+
+  const handleSaveToCalendar = (rec: Recommendation, index: number) => {
+    const today = new Date();
+    const dayIndex = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].indexOf(rec.day);
+    const currentDay = (today.getDay() + 6) % 7; // Convert to Mon=0
+    const daysUntil = dayIndex >= currentDay ? dayIndex - currentDay : 7 - currentDay + dayIndex;
+    const scheduledDate = format(addDays(today, daysUntil || 7), 'yyyy-MM-dd');
+
+    addPost({
+      title: rec.hook || rec.concept,
+      description: `${rec.concept}\n\nReasoning: ${rec.reasoning}`,
+      platform: rec.platform as 'instagram' | 'tiktok' | 'youtube' | 'facebook' | 'all',
+      status: 'idea',
+      scheduledDate,
+      tags: [rec.pillar.toLowerCase(), rec.format],
+      notes: `AI Weekly Recommendation — ${rec.day}`,
+    });
+    setSavedRecs(prev => new Set(prev).add(index));
+  };
+
   return (
     <div className="space-y-6">
       {/* Welcome */}
-      <div className="flex items-center gap-3">
-        <Sparkles className="w-6 h-6 text-violet-600" />
-        <div>
-          <h2 className="text-xl font-bold text-zinc-900">Welcome back</h2>
-          <p className="text-sm text-zinc-400">Here&apos;s your creator overview for today</p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Sparkles className="w-6 h-6 text-violet-600" />
+          <div>
+            <h2 className="text-xl font-bold text-zinc-900">Welcome back</h2>
+            <p className="text-sm text-zinc-400">Here&apos;s your creator overview for today</p>
+          </div>
         </div>
+        {apiKey && (
+          <Button size="sm" onClick={handleGetRecs} disabled={isRecsLoading}>
+            {isRecsLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CalendarPlus className="w-4 h-4" />}
+            Weekly Plan
+          </Button>
+        )}
       </div>
 
       {/* Save error */}
@@ -99,7 +184,7 @@ export function DashboardOverview() {
           const isEditing = editingPlatform === p.key;
 
           const handleSave = async () => {
-            if (editingPlatform !== p.key) return; // guard double-fire
+            if (editingPlatform !== p.key) return;
             const val = parseInt(editValue, 10);
             setEditingPlatform(null);
             setSaveError(null);
@@ -301,6 +386,48 @@ export function DashboardOverview() {
           )}
         </Card>
       </div>
+
+      {/* Weekly Recommendations Modal */}
+      <Modal isOpen={isRecsOpen} onClose={() => setIsRecsOpen(false)} title="Weekly Content Plan" maxWidth="max-w-2xl">
+        {isRecsLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-6 h-6 animate-spin text-violet-600" />
+            <span className="ml-3 text-sm text-zinc-500">Generating your weekly plan...</span>
+          </div>
+        ) : recsError ? (
+          <p className="text-sm text-red-600 py-4">{recsError}</p>
+        ) : (
+          <div className="space-y-3">
+            {recs.map((rec, i) => {
+              const saved = savedRecs.has(i);
+              const platColors = PLATFORM_COLORS[rec.platform as keyof typeof PLATFORM_COLORS] || PLATFORM_COLORS.all;
+              return (
+                <div key={i} className="bg-surface-elevated rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-violet-600">{rec.day}</span>
+                      <Badge className={platColors.badge}>{PLATFORM_SHORT_LABELS[rec.platform as keyof typeof PLATFORM_SHORT_LABELS] || rec.platform}</Badge>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-500">{rec.format}</span>
+                    </div>
+                    <Button
+                      variant={saved ? 'ghost' : 'secondary'}
+                      size="sm"
+                      onClick={() => handleSaveToCalendar(rec, i)}
+                      disabled={saved}
+                    >
+                      {saved ? <><Check className="w-3.5 h-3.5 text-emerald-600" /> Saved</> : <><CalendarPlus className="w-3.5 h-3.5" /> Save</>}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-zinc-400 mb-1">{rec.pillar}</p>
+                  <p className="text-sm text-zinc-800 font-medium">{rec.concept}</p>
+                  <p className="text-sm text-violet-700 mt-1 italic">&ldquo;{rec.hook}&rdquo;</p>
+                  <p className="text-xs text-zinc-400 mt-2">{rec.reasoning}</p>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

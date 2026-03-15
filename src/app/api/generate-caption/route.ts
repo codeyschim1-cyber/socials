@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
+import { CREATOR_VOICE_PROFILE } from '@/lib/creator-context';
 
 export async function POST(req: NextRequest) {
   const { apiKey, contentDescription, platform, tone, includeEmojis, includeCTA, niche } = await req.json();
@@ -10,7 +11,9 @@ export async function POST(req: NextRequest) {
 
   const client = new Anthropic({ apiKey });
 
-  const prompt = `You are a social media caption writer. Generate a compelling caption for the following content.
+  const prompt = `${CREATOR_VOICE_PROFILE}
+
+You are a social media caption writer for this creator. Match their voice and style. Generate a compelling caption for the following content.
 
 Content description: "${contentDescription}"
 Platform: ${platform || 'All platforms'}

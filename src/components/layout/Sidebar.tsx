@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, CalendarDays, BarChart3, Lightbulb,
-  Handshake, UserCircle, ChevronLeft, ChevronRight, Sparkles, LogOut
+  Handshake, UserCircle, ChevronLeft, ChevronRight, Sparkles, LogOut, Store
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuthContext } from '@/components/auth/AuthProvider';
@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { href: '/calendar', label: 'Calendar', icon: CalendarDays },
   { href: '/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/ideas', label: 'Ideas', icon: Lightbulb },
+  { href: '/stores', label: 'Stores', icon: Store },
   { href: '/brands', label: 'Brands', icon: Handshake },
   { href: '/media-kit', label: 'Media Kit', icon: UserCircle },
 ];

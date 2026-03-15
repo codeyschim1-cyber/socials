@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
+import { CREATOR_VOICE_PROFILE } from '@/lib/creator-context';
 
 export async function POST(req: NextRequest) {
   const { apiKey, email, creatorProfile } = await req.json();
@@ -14,7 +15,9 @@ export async function POST(req: NextRequest) {
     ? `\nRate card:\n${Object.entries(creatorProfile.rates).filter(([, v]) => v && Number(v) > 0).map(([k, v]) => `- ${k.replace(/([A-Z])/g, ' $1').trim()}: $${v}`).join('\n')}`
     : '';
 
-  const prompt = `You are a professional talent manager/agent for a content creator. Draft a polished, professional response email to this inbound brand inquiry.
+  const prompt = `${CREATOR_VOICE_PROFILE}
+
+You are a professional talent manager/agent for this creator. Draft a polished, professional response email to this inbound brand inquiry. Use the rates from the creator profile above.
 
 Creator profile:
 - Name: ${creatorProfile.displayName || 'Creator'}

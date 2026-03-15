@@ -9,11 +9,18 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { LineChartWrapper } from '@/components/charts/LineChartWrapper';
 import { BarChartWrapper } from '@/components/charts/BarChartWrapper';
 import { MetricEntryForm } from './MetricEntryForm';
+import { PerformanceLog } from './PerformanceLog';
+import { Tabs } from '@/components/ui/Tabs';
 import { getLatestEntry, getGrowthData, filterByPeriod, calculateEngagementRate } from '@/lib/analytics-utils';
 import { CHART_COLORS, PLATFORM_COLORS, PLATFORM_LABELS } from '@/lib/constants';
 import { Plus, BarChart3, TrendingUp, Users, Eye, Heart, Calculator, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { format, parseISO } from 'date-fns';
+
+const ANALYTICS_TABS = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'performance', label: 'Performance Log' },
+];
 
 const ALL_PLATFORMS = [
   { key: 'instagram' as const, label: 'Instagram', color: 'text-pink-600' },
@@ -24,6 +31,7 @@ const ALL_PLATFORMS = [
 
 export function AnalyticsDashboard() {
   const { entries, addEntry, deleteEntry } = useAnalytics();
+  const [activeTab, setActiveTab] = useState('overview');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [period, setPeriod] = useState<'week' | 'month' | 'all'>('all');
   const [showCalculator, setShowCalculator] = useState(false);
@@ -63,20 +71,32 @@ export function AnalyticsDashboard() {
 
   if (entries.length === 0 && !isFormOpen) {
     return (
-      <div>
-        <EmptyState
-          icon={BarChart3}
-          title="No analytics data yet"
-          description="Start tracking your social media metrics to see growth trends and insights."
-          action={<Button size="sm" onClick={() => setIsFormOpen(true)}><Plus className="w-4 h-4" /> Add Metrics</Button>}
-        />
-        <MetricEntryForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={addEntry} />
+      <div className="space-y-6">
+        <Tabs tabs={ANALYTICS_TABS} activeTab={activeTab} onChange={setActiveTab} />
+        {activeTab === 'overview' ? (
+          <div>
+            <EmptyState
+              icon={BarChart3}
+              title="No analytics data yet"
+              description="Start tracking your social media metrics to see growth trends and insights."
+              action={<Button size="sm" onClick={() => setIsFormOpen(true)}><Plus className="w-4 h-4" /> Add Metrics</Button>}
+            />
+            <MetricEntryForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={addEntry} />
+          </div>
+        ) : (
+          <PerformanceLog />
+        )}
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
+      <Tabs tabs={ANALYTICS_TABS} activeTab={activeTab} onChange={setActiveTab} />
+
+      {activeTab === 'performance' && <PerformanceLog />}
+
+      {activeTab === 'overview' && <>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -241,6 +261,7 @@ export function AnalyticsDashboard() {
       </Card>
 
       <MetricEntryForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSave={addEntry} />
+      </>}
     </div>
   );
 }

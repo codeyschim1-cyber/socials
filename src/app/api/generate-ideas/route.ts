@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
+import { CREATOR_VOICE_PROFILE } from '@/lib/creator-context';
 
 export async function POST(req: NextRequest) {
   const { apiKey, notes, contentContext, platforms, niche, inspirationCreators, creatorBio, performanceData, screenshotBase64 } = await req.json();
@@ -28,7 +29,9 @@ export async function POST(req: NextRequest) {
     ? `\n\nIMPORTANT: An analytics screenshot has been provided. Carefully read and analyze the data in the image — follower counts, engagement rates, top posts, reach, impressions, etc. Use this real data to inform your content ideas. Prioritize content types and topics that align with what's performing well according to the screenshot.`
     : '';
 
-  const prompt = `You are a social media content strategist specializing in the vintage fashion, thrifting, and menswear niche. Generate 5 creative content ideas for a creator.
+  const prompt = `${CREATOR_VOICE_PROFILE}
+
+You are a social media content strategist for this creator. Generate 5 creative content ideas based on the creator profile above.
 
 Creator info:
 - Platforms: ${platforms || 'Instagram, TikTok, YouTube, Facebook'}
