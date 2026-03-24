@@ -34,6 +34,11 @@ export function usePerformanceLog() {
         viral: r.viral ?? false,
         notes: r.notes ?? '',
         date: r.date,
+        heroItem: r.hero_item ?? '',
+        closeType: r.close_type ?? 'comment_bait',
+        templateUsed: r.template_used ?? 'other',
+        logisticsInVoiceover: r.logistics_in_voiceover ?? false,
+        payloadTiming: r.payload_timing ?? 0,
         createdAt: r.created_at,
       })));
     }
@@ -62,6 +67,11 @@ export function usePerformanceLog() {
         viral: entry.viral,
         notes: entry.notes,
         date: entry.date,
+        hero_item: entry.heroItem,
+        close_type: entry.closeType,
+        template_used: entry.templateUsed,
+        logistics_in_voiceover: entry.logisticsInVoiceover,
+        payload_timing: entry.payloadTiming,
       })
       .select()
       .single();
@@ -83,6 +93,11 @@ export function usePerformanceLog() {
         viral: data.viral ?? false,
         notes: data.notes ?? '',
         date: data.date,
+        heroItem: data.hero_item ?? '',
+        closeType: data.close_type ?? 'comment_bait',
+        templateUsed: data.template_used ?? 'other',
+        logisticsInVoiceover: data.logistics_in_voiceover ?? false,
+        payloadTiming: data.payload_timing ?? 0,
         createdAt: data.created_at,
       }, ...prev]);
     }
