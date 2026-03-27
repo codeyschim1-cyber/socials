@@ -13,6 +13,7 @@ interface IdeaDeepDiveModalProps {
   idea: GeneratedIdea | null;
   isOpen: boolean;
   onClose: () => void;
+  referenceLinks?: string[];
 }
 
 const HOOK_LABELS: Record<string, string> = {
@@ -26,7 +27,7 @@ const HOOK_LABELS: Record<string, string> = {
 const TAB_IDS = ['shots', 'hooks', 'script'] as const;
 type TabId = typeof TAB_IDS[number];
 
-export function IdeaDeepDiveModal({ idea, isOpen, onClose }: IdeaDeepDiveModalProps) {
+export function IdeaDeepDiveModal({ idea, isOpen, onClose, referenceLinks }: IdeaDeepDiveModalProps) {
   const { apiKey } = useApiKey();
   const { mediaKit } = useMediaKit();
   const [activeTab, setActiveTab] = useState<TabId>('shots');
@@ -63,6 +64,7 @@ export function IdeaDeepDiveModal({ idea, isOpen, onClose }: IdeaDeepDiveModalPr
           category: idea.category,
           niche: mediaKit.niche.length > 0 ? mediaKit.niche.join(', ') : undefined,
           creatorBio: mediaKit.bio || undefined,
+          referenceLinks: referenceLinks && referenceLinks.length > 0 ? referenceLinks : undefined,
         }),
       });
 

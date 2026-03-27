@@ -2,14 +2,63 @@ import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 import { CREATOR_VOICE_PROFILE, WORKED_SCRIPT_EXAMPLES } from '@/lib/creator-context';
 
+async function fetchLinkContent(url: string): Promise<string> {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    const res = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; CreatorHub/1.0)',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      },
+    });
+    clearTimeout(timeout);
+    if (!res.ok) return `[Failed to fetch ${url}: ${res.status}]`;
+    const html = await res.text();
+    const text = html
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+      .replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, '')
+      .replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&#\d+;/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    return text.slice(0, 3000);
+  } catch {
+    return `[Failed to fetch ${url}: request timed out or blocked]`;
+  }
+}
+
 export async function POST(req: NextRequest) {
-  const { apiKey, title, description, platform, category, niche, creatorBio } = await req.json();
+  const { apiKey, title, description, platform, category, niche, creatorBio, referenceLinks } = await req.json();
 
   if (!apiKey) {
     return NextResponse.json({ error: 'API key is required' }, { status: 400 });
   }
 
   const client = new Anthropic({ apiKey });
+
+  // Fetch reference links if provided
+  let referenceLinkContext = '';
+  if (referenceLinks && Array.isArray(referenceLinks) && referenceLinks.length > 0) {
+    const linkResults = await Promise.all(
+      referenceLinks.slice(0, 5).map(async (url: string) => {
+        const content = await fetchLinkContent(url);
+        return { url, content };
+      })
+    );
+    referenceLinkContext = `--- STORE / LOCATION RESEARCH (from reference links) ---
+CRITICAL: Use ONLY this information for factual details about this location. Do NOT fabricate details like number of floors, neighborhood, address, or what they sell. If info is not here, omit it.
+
+${linkResults.map((r, i) => `[Source ${i + 1}: ${r.url}]\n${r.content}`).join('\n\n')}
+--- END STORE RESEARCH ---`;
+  }
 
   const prompt = `${CREATOR_VOICE_PROFILE}
 
@@ -55,6 +104,7 @@ Platform: ${platform || 'Instagram Reels'}
 Category: ${category || 'evergreen'}
 Creator niche: ${niche || 'vintage fashion, thrifting, menswear'}
 ${creatorBio ? `Creator bio: ${creatorBio}` : ''}
+${referenceLinkContext}
 
 Generate a COMPLETE production-ready script package. Follow the worked examples above for style and format.
 

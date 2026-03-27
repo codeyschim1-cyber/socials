@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/Textarea';
 import { Select } from '@/components/ui/Select';
 import { Badge } from '@/components/ui/Badge';
 import { IDEA_CATEGORIES, PLATFORM_COLORS, PLATFORM_SHORT_LABELS } from '@/lib/constants';
-import { Sparkles, Loader2, Key, Plus, Check, Camera, Film } from 'lucide-react';
+import { Sparkles, Loader2, Key, Plus, Check, Camera, Film, Link2, X } from 'lucide-react';
 import { ContentIdea, GeneratedIdea } from '@/types/ideas';
 import { IdeaDeepDiveModal } from './IdeaDeepDiveModal';
 
@@ -38,6 +38,8 @@ export function AIGenerator({ onAddIdea }: AIGeneratorProps) {
   // Pre-shoot state
   const [location, setLocation] = useState('');
   const [platform, setPlatform] = useState('instagram');
+  const [referenceLinks, setReferenceLinks] = useState<string[]>([]);
+  const [linkInput, setLinkInput] = useState('');
 
   // Post-shoot state
   const [rawNotes, setRawNotes] = useState('');
@@ -50,6 +52,19 @@ export function AIGenerator({ onAddIdea }: AIGeneratorProps) {
     setApiKey(keyInput);
     setShowKeyInput(false);
     setKeyInput('');
+  };
+
+  const handleAddLink = () => {
+    const trimmed = linkInput.trim();
+    if (trimmed && referenceLinks.length < 5) {
+      const url = trimmed.startsWith('http') ? trimmed : `https://${trimmed}`;
+      setReferenceLinks(prev => [...prev, url]);
+      setLinkInput('');
+    }
+  };
+
+  const handleRemoveLink = (index: number) => {
+    setReferenceLinks(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleGenerate = async () => {
@@ -76,6 +91,7 @@ export function AIGenerator({ onAddIdea }: AIGeneratorProps) {
           notes,
           platforms: platform,
           niche: 'vintage fashion, thrifting, menswear',
+          referenceLinks: mode === 'pre-shoot' && referenceLinks.length > 0 ? referenceLinks : undefined,
         }),
       });
 
@@ -197,6 +213,53 @@ export function AIGenerator({ onAddIdea }: AIGeneratorProps) {
               value={platform}
               onChange={e => setPlatform(e.target.value)}
             />
+
+            {/* Reference Links */}
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 mb-1.5">
+                <span className="flex items-center gap-1.5">
+                  <Link2 className="w-3.5 h-3.5 text-zinc-400" />
+                  Reference Links
+                  <span className="text-xs text-zinc-400 font-normal">(optional — up to 5)</span>
+                </span>
+              </label>
+              <p className="text-xs text-zinc-400 mb-2">Add links to the store&apos;s website, Instagram, Yelp, Google Maps, etc. for accurate location details.</p>
+
+              {/* Existing links */}
+              {referenceLinks.length > 0 && (
+                <div className="space-y-1.5 mb-2">
+                  {referenceLinks.map((link, i) => (
+                    <div key={i} className="flex items-center gap-2 bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-1.5">
+                      <Link2 className="w-3 h-3 text-violet-500 shrink-0" />
+                      <span className="text-xs text-zinc-600 truncate flex-1">{link}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveLink(i)}
+                        className="text-zinc-400 hover:text-red-500 transition-colors shrink-0"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Add link input */}
+              {referenceLinks.length < 5 && (
+                <div className="flex gap-2">
+                  <Input
+                    value={linkInput}
+                    onChange={e => setLinkInput(e.target.value)}
+                    placeholder="Paste a URL (website, Instagram, Yelp, Google Maps...)"
+                    className="flex-1"
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddLink(); } }}
+                  />
+                  <Button type="button" variant="secondary" size="sm" onClick={handleAddLink} disabled={!linkInput.trim()}>
+                    <Plus className="w-3.5 h-3.5" /> Add
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -289,6 +352,7 @@ export function AIGenerator({ onAddIdea }: AIGeneratorProps) {
         idea={deepDiveIdea}
         isOpen={isDeepDiveOpen}
         onClose={() => { setIsDeepDiveOpen(false); setDeepDiveIdea(null); }}
+        referenceLinks={referenceLinks.length > 0 ? referenceLinks : undefined}
       />
     </div>
   );

@@ -2,8 +2,44 @@ import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 import { CREATOR_VOICE_PROFILE } from '@/lib/creator-context';
 
+async function fetchLinkContent(url: string): Promise<string> {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    const res = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; CreatorHub/1.0)',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      },
+    });
+    clearTimeout(timeout);
+    if (!res.ok) return `[Failed to fetch ${url}: ${res.status}]`;
+    const html = await res.text();
+    // Strip HTML tags, scripts, styles, and collapse whitespace
+    const text = html
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+      .replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, '')
+      .replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, '')
+      .replace(/<header[^>]*>[\s\S]*?<\/header>/gi, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&#\d+;/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    // Truncate to ~3000 chars to avoid bloating the prompt
+    return text.slice(0, 3000);
+  } catch {
+    return `[Failed to fetch ${url}: request timed out or blocked]`;
+  }
+}
+
 export async function POST(req: NextRequest) {
-  const { apiKey, notes, contentContext, platforms, niche, inspirationCreators, creatorBio, performanceData, screenshotBase64 } = await req.json();
+  const { apiKey, notes, contentContext, platforms, niche, inspirationCreators, creatorBio, performanceData, screenshotBase64, referenceLinks } = await req.json();
 
   if (!apiKey) {
     return NextResponse.json({ error: 'API key is required' }, { status: 400 });
@@ -29,6 +65,23 @@ export async function POST(req: NextRequest) {
     ? `\n\nIMPORTANT: An analytics screenshot has been provided. Carefully read and analyze the data in the image — follower counts, engagement rates, top posts, reach, impressions, etc. Use this real data to inform your content ideas. Prioritize content types and topics that align with what's performing well according to the screenshot.`
     : '';
 
+  // Fetch reference links if provided
+  let referenceLinkSection = '';
+  if (referenceLinks && Array.isArray(referenceLinks) && referenceLinks.length > 0) {
+    const linkResults = await Promise.all(
+      referenceLinks.slice(0, 5).map(async (url: string) => {
+        const content = await fetchLinkContent(url);
+        return { url, content };
+      })
+    );
+    referenceLinkSection = `\n\n--- STORE / LOCATION RESEARCH (from provided reference links) ---
+CRITICAL: Use ONLY the information below for factual details about this location (address, neighborhood, number of floors, what they sell, prices, hours, etc.). Do NOT make up or assume any details that are not in these sources. If a detail is not available from the links, say so or leave it out — never fabricate location-specific facts.
+
+${linkResults.map((r, i) => `[Source ${i + 1}: ${r.url}]\n${r.content}`).join('\n\n')}
+
+--- END STORE RESEARCH ---`;
+  }
+
   const prompt = `${CREATOR_VOICE_PROFILE}
 
 You are a social media content strategist for this creator. Generate 5 creative content ideas based on the creator profile above.
@@ -36,7 +89,7 @@ You are a social media content strategist for this creator. Generate 5 creative 
 Creator info:
 - Platforms: ${platforms || 'Instagram, TikTok, YouTube, Facebook'}
 - Niche/topics: ${niche || 'general'}${bioSection}
-${contextSection}${inspirationSection}${performanceSection}${screenshotSection}
+${contextSection}${inspirationSection}${performanceSection}${screenshotSection}${referenceLinkSection}
 
 The creator's notes/request: "${notes}"
 
