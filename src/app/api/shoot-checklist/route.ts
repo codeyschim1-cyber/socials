@@ -13,25 +13,47 @@ export async function POST(req: NextRequest) {
 
   const prompt = `${CREATOR_VOICE_PROFILE}
 
---- PERFORMANCE RULES ---
-- Lead with quantifiable superlative by frame 0
-- Deliver core payload (price, secret, hero item) by 0:04
-- All logistics in on-screen text overlays ONLY, never spoken
-- Show hero item in first 2 seconds
-- B-roll cuts every 1-2 seconds
-- Spot Reveal 3-2-1 countdown builds watch time
-- Number anchors for scale
-- On-screen checklists drive saves
-- Never: spoken logistics, owner backstory, static architecture over 1.5s, generic rack scanning, slow intros
+--- PRODUCTION BIBLE RULES ---
 
-SCRIPT TEMPLATES:
-1. HIDDEN GEM: Dynamic movement → fast item cuts → Spot Reveal countdown → Comment bait
-2. EPIC HAUL: Travel shot → scale montage → hero find close-up → Tag-a-friend
-3. CURATED LIST: Street corner shot → rapid-fire stops → Spot Reveal → Comment CTA
+4-PHASE FRAMEWORK (every video follows this):
+Phase 1 — HOOK (0:00-0:04): Bold text overlay at frame 0 + dynamic movement + core payload delivered
+Phase 2 — LOCATION DROP (0:04-0:09): Establish the space, show scale, on-screen store name/neighborhood
+Phase 3 — INVENTORY MEAT (0:09-0:25): Rapid 1-2 second cuts of hero items, brands, price tags. Stack with "The List" technique.
+Phase 4 — INSIDER TIP (0:25-0:30+): Close with save-worthy tip, comment bait, or Spot Reveal countdown
+
+VOICEOVER RULES:
+- 60-85 words total. Moderate steady pace.
+- Voiceover sells the vibe. Text overlays handle ALL logistics.
+- Every sentence must contain a specific: item, price, brand, or number.
+- Use "The List" technique: stack items without "and" until the final item.
+
+TEXT OVERLAY STRATEGY:
+- Frame 0: Hook claim in bold caps
+- Location/address: On-screen only, never spoken
+- Checklist format: "Best for: X, Y, Z" drives saves
+- Price tags: Show prices on hero items
+- CTA: Final frame text matches close type
+
+MUSIC DIRECTION:
+- Hidden Gem / Gatekept: Lo-fi or downtempo hip-hop, mysterious vibe
+- Epic Haul / Warehouse: Uptempo hip-hop, triumphant energy
+- Curated List / Tour: Jazzy, walking-pace rhythm
+
+VIRALITY CHECKLIST (aim for 5/5):
+□ Hook delivers payload within first 4 seconds
+□ At least one extreme value claim (price, scale, or geography)
+□ Voiceover is 60-85 words max
+□ No logistics spoken in voiceover (all in text overlays)
+□ Close uses an approved close type
+
+TEMPLATE STRUCTURES:
+1. HIDDEN GEM: Dynamic approach → fast item cuts + checklist → Spot Reveal 3-2-1 → Comment bait
+2. EPIC HAUL: Travel/scale shot → bins/bulk montage → hero find close-up → Tag-a-friend
+3. CURATED LIST: Street corner → rapid-fire stops with map pins → Spot Reveal → Comment CTA
 
 ---
 
-Generate a complete pre-shoot production checklist for this creator.
+Generate a complete pre-shoot production checklist for this creator. Every instruction must be SPECIFIC to this shoot — no generic advice.
 
 Store/Location: "${storeName}"
 Content Type: ${contentType}
@@ -39,33 +61,54 @@ Hero Item: "${heroItem}"
 Location: "${location}"
 ${pricePoint ? `Price Point: "${pricePoint}"` : ''}
 
-Create a checklist tailored to the ${contentType} template and this specific location. Every instruction should be specific to this shoot — no generic advice.
-
 Respond with a JSON object:
 {
   "template": "${contentType}",
-  "hookShot": {
-    "description": "Exactly what to film in first 3 seconds",
-    "cameraMove": "Specific camera movement (walk-toward, dramatic zoom, pan, etc.)",
-    "textOverlay": "The bold text overlay to prep for frame 0"
+  "viralityScore": {
+    "scale": 1-5,
+    "geography": 1-5,
+    "valueDisconnect": 1-5,
+    "total": 3-15,
+    "prediction": "Tier 1 / Tier 2 / Tier 3"
   },
-  "payloadShot": {
-    "description": "What to show by 0:04 to deliver core value",
-    "timing": "0:02-0:04"
+  "hookShot": {
+    "phase": "Phase 1 — HOOK (0:00-0:04)",
+    "description": "Exactly what to film in first 4 seconds",
+    "cameraMove": "Specific camera movement (walk-toward, dramatic zoom, pan, etc.)",
+    "textOverlay": "The bold text overlay to prep for frame 0 — IN CAPS",
+    "voiceoverLine": "The exact opening line to deliver"
+  },
+  "locationDrop": {
+    "phase": "Phase 2 — LOCATION DROP (0:04-0:09)",
+    "description": "How to establish the space and show scale",
+    "textOverlay": "Store name / neighborhood overlay text",
+    "voiceoverLine": "The location context line"
+  },
+  "inventoryMeat": {
+    "phase": "Phase 3 — INVENTORY MEAT (0:09-0:25)",
+    "shots": [
+      { "shot": "Specific item/area to film", "maxDuration": "1-2s", "textOverlay": "Brand/price overlay or null" }
+    ],
+    "voiceoverLine": "The inventory stacking line using The List technique"
   },
   "heroItemShot": {
-    "description": "How to frame and reveal ${heroItem}"
+    "description": "How to frame and reveal ${heroItem}",
+    "timing": "When in the video this appears",
+    "textOverlay": "Price/brand overlay for hero item"
   },
-  "bRollList": [
-    { "shot": "Specific shot description", "maxDuration": "1-2s" }
-  ],
-  "textOverlaysToPrep": ["All on-screen text to design before editing"],
   "closeShot": {
-    "type": "comment_bait | spot_reveal | fast_directive | strong_visual | tag_a_friend",
-    "description": "Exactly how to end the video"
+    "phase": "Phase 4 — INSIDER TIP (0:25-0:30+)",
+    "type": "comment_bait | spot_reveal | fast_directive | strong_visual | tag_a_friend | save_prompt",
+    "description": "Exactly how to end the video",
+    "voiceoverLine": "The exact close line",
+    "textOverlay": "📍 address or CTA text"
   },
-  "thingsToAvoid": ["Specific performance killers relevant to this shoot"],
-  "targetRuntime": "12-18s"
+  "textOverlaysToPrep": ["All on-screen text to design before editing — list each one"],
+  "audioVibe": "Specific music direction for this content type",
+  "thingsToAvoid": ["Specific performance killers relevant to THIS shoot"],
+  "viralityChecklist": ["5 items to check before publishing"],
+  "targetRuntime": "Xs",
+  "targetWordCount": "60-85 words"
 }
 
 Respond ONLY with the JSON object, no other text.`;
@@ -73,7 +116,7 @@ Respond ONLY with the JSON object, no other text.`;
   try {
     const message = await client.messages.create({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 2500,
+      max_tokens: 3000,
       messages: [{ role: 'user', content: prompt }],
     });
 

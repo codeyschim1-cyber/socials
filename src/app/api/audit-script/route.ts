@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
 
   const prompt = `${CREATOR_VOICE_PROFILE}
 
-You are a content performance auditor for this creator. Audit the following script against their data-backed performance rules. Be strict — this creator's audience leaves at 4-5 seconds if the payload isn't delivered.
+You are a content performance auditor for this creator. Audit the following script against their COMPLETE data-backed performance system. Be strict — this creator's audience leaves at 4-5 seconds if the payload isn't delivered.
 
 Script:
 """
@@ -21,44 +21,79 @@ ${scriptText}
 """
 ${estimatedLengthSeconds ? `Estimated length: ${estimatedLengthSeconds} seconds` : ''}
 
-CHECK FOR THESE FAILURES:
-- Spoken logistics: addresses, hours, dates, appointment rules in voiceover
-- History/backstory: owner biography, store founding story
-- Missing hero item: no specific product called out in first 2 seconds
-- Late payload: core value prop (price, secret, scale) not delivered by 0:04
-- Overtime: estimated runtime over 18 seconds
-- Weak opening: starts with greeting, slow intro, or static scene description
-- Dead b-roll: generic rack descriptions without specific items
-- Missing close: no question, directive, countdown, or strong visual ending
-- Overcrowded text: 10+ item list described while camera would be moving
-- Filler language: "um", "like", "so basically", "the vibes"
+--- VIRALITY CHECKLIST (must pass 4/5 to publish) ---
+□ Hook delivers payload within first 4 seconds
+□ At least one extreme value claim (price, scale, or geography)
+□ Voiceover is 60-85 words max
+□ No logistics spoken in voiceover (all in text overlays)
+□ Close uses one of the 6 approved close types (comment bait, spot reveal, fast directive, strong visual, save prompt, tag a friend)
 
-CHECK FOR THESE PASSES:
-- Superlative hook present
-- Payload delivered by 0:04
-- Hero item named in first 2 seconds
-- Logistics in text overlay only (marked with [TEXT:] or similar)
-- On-screen checklist present
-- Number anchor used
-- Mini narrative goal stated
-- Strong close type identified
+--- 4-PHASE STRUCTURE CHECK ---
+Phase 1 — HOOK (0:00-0:04): Bold text overlay + dynamic movement + payload delivered?
+Phase 2 — LOCATION DROP (0:04-0:09): Space established, scale shown, store name overlay?
+Phase 3 — INVENTORY MEAT (0:09-0:25): Rapid 1-2s cuts? "The List" technique used? Specific items/brands/prices?
+Phase 4 — INSIDER TIP (0:25-0:30+): Save-worthy tip, comment bait, or Spot Reveal?
 
-Score 0-100 based on how many rules pass vs fail, weighted by impact:
-- Hook/payload timing: 30 points
-- Hero item presence: 15 points
-- No performance killers: 20 points
-- Strong close: 10 points
-- Correct format/length: 10 points
-- Voice match: 15 points
+--- FAILURE CHECKS (each costs points) ---
+- Spoken logistics: addresses, hours, dates, directions in voiceover (-15 pts)
+- History/backstory: owner biography, store founding story (-10 pts)
+- Missing hero item: no specific product in first 2 seconds (-10 pts)
+- Late payload: core value prop not delivered by 0:04 (-15 pts)
+- Overtime: voiceover over 85 words (-10 pts)
+- Weak opening: starts with greeting, slow intro, static scene (-15 pts)
+- Dead b-roll: generic rack descriptions without specific items (-5 pts)
+- Missing close: no approved close type at end (-10 pts)
+- Overcrowded text: 10+ items listed while camera moves (-5 pts)
+- Banned vocabulary: "Hey guys", "Vibes", "Aesthetic", "Cute", "Come with me" as opener (-10 pts)
+- No specificity: sentence without a brand name, price, number, or location (-5 pts per instance)
+- Missing "The List" technique in inventory section (-5 pts)
+
+--- PASS CHECKS (each earns points) ---
+- Superlative hook present (+15 pts)
+- Payload delivered by 0:04 (+15 pts)
+- Hero item named in first 2 seconds (+10 pts)
+- Logistics in text overlay only (+10 pts)
+- On-screen checklist present (+5 pts)
+- Number anchor used (+5 pts)
+- "The List" technique (stacking items without "and" until final) (+5 pts)
+- Strong approved close type identified (+10 pts)
+- Psychological trigger activated (Anti-Gatekeeper, Pilgrimage, Value Disconnect, Calm Guide) (+10 pts)
+- Voiceover 60-85 words (+10 pts)
+- Uses approved vocabulary (+5 pts)
+
+--- SCORING ---
+Start at 0, add pass points, subtract failure points. Cap at 100.
+90-100: Ship it. Ready to film.
+70-89: Strong but needs polish. Fix top priority.
+50-69: Major issues. Rewrite required.
+Below 50: Start over with a worked example as template.
+
+COUNT THE VOICEOVER WORDS. Include the exact count.
 
 Respond with a JSON object:
 {
   "overallScore": 0-100,
-  "verdict": "One sentence summary verdict",
-  "passes": [{ "rule": "Rule name", "note": "What was done well" }],
-  "failures": [{ "rule": "Rule name", "line": "The specific problematic text from the script", "fix": "How to fix it" }],
-  "topPriorityFix": "The single most impactful fix to make",
-  "revisedOpening": "Rewritten first 5 seconds only, following all performance rules"
+  "verdict": "Ship it / Needs polish / Rewrite required / Start over",
+  "voiceoverWordCount": exact_number,
+  "viralityChecklist": {
+    "hookPayloadBy4s": true/false,
+    "extremeValueClaim": true/false,
+    "voiceoverUnder85Words": true/false,
+    "noLogisticsInVO": true/false,
+    "approvedCloseType": true/false,
+    "passCount": "X/5"
+  },
+  "phaseCheck": {
+    "phase1Hook": { "present": true/false, "note": "What works or what's missing" },
+    "phase2LocationDrop": { "present": true/false, "note": "What works or what's missing" },
+    "phase3InventoryMeat": { "present": true/false, "note": "What works or what's missing" },
+    "phase4InsiderTip": { "present": true/false, "note": "What works or what's missing" }
+  },
+  "psychologicalTriggers": ["Which triggers are activated"],
+  "passes": [{ "rule": "Rule name", "points": number, "note": "What was done well" }],
+  "failures": [{ "rule": "Rule name", "points": number, "line": "The specific problematic text", "fix": "Specific rewrite" }],
+  "topPriorityFix": "The single most impactful fix to make right now",
+  "revisedOpening": "Rewritten Phase 1 (first 4 seconds) following all performance rules, using a proven hook formula"
 }
 
 Respond ONLY with the JSON object, no other text.`;
@@ -66,7 +101,7 @@ Respond ONLY with the JSON object, no other text.`;
   try {
     const message = await client.messages.create({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 2500,
+      max_tokens: 3500,
       messages: [{ role: 'user', content: prompt }],
     });
 
