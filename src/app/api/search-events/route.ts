@@ -37,19 +37,24 @@ Respond with this JSON structure:
 If you cannot find specific events, return {"events": []} with no other text. Only include events you are confident about with real dates and locations.`;
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const message = await (client.messages.create as any)({
+    const message = await client.messages.create({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 2000,
-      model_options: { web_search: true },
+      tools: [
+        {
+          type: 'web_search_20250305' as const,
+          name: 'web_search',
+          max_uses: 3,
+        } as Anthropic.Messages.WebSearchTool20250305,
+      ],
       messages: [{ role: 'user', content: prompt }],
     });
 
+    // Extract text from response (may have multiple content blocks with web search)
     let text = '';
     for (const block of message.content) {
       if (block.type === 'text') {
-        text = block.text;
-        break;
+        text += block.text;
       }
     }
 
