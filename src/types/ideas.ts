@@ -21,8 +21,33 @@ export interface IdeaDeepDive {
   hooks: {
     type: string;
     text: string;
+    tier?: string;
   }[];
   script: string;
+  viralityScore?: {
+    scale: number;
+    geography: number;
+    valueDisconnect: number;
+    total: number;
+    prediction: string;
+    angleAdvice?: string;
+  };
+  templateSelected?: string;
+  templateReason?: string;
+  voiceoverWordCount?: number;
+  closeType?: string;
+  audioVibe?: string;
+  instagramCaption?: string;
+  estimatedLength?: string;
+  viralityChecklist?: {
+    hookPayloadBy4s: boolean;
+    extremeValueClaim: boolean;
+    voiceoverUnder85Words: boolean;
+    noLogisticsInVO: boolean;
+    approvedCloseType: boolean;
+    passCount: string;
+  };
+  performanceNotes?: string[];
 }
 
 export interface ContentIdea {

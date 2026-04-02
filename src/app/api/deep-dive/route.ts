@@ -181,7 +181,7 @@ Respond ONLY with the JSON object, no other text.`;
   try {
     const message = await client.messages.create({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 5000,
+      max_tokens: 8000,
       messages: [{ role: 'user', content: prompt }],
     });
 
@@ -191,7 +191,69 @@ Respond ONLY with the JSON object, no other text.`;
       return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500 });
     }
 
-    const result = JSON.parse(jsonMatch[0]);
+    // Attempt to fix common JSON issues before parsing
+    let jsonStr = jsonMatch[0];
+    // Fix unquoted property values like true/false that might be malformed
+    jsonStr = jsonStr.replace(/:\s*'([^']*)'/g, ': "$1"');
+    // Fix trailing commas before } or ]
+    jsonStr = jsonStr.replace(/,\s*([}\]])/g, '$1');
+
+    let raw;
+    try {
+      raw = JSON.parse(jsonStr);
+    } catch {
+      // If still fails, try more aggressive cleanup
+      jsonStr = jsonStr.replace(/[\x00-\x1F\x7F]/g, (ch) =>
+        ch === '\n' ? '\\n' : ch === '\t' ? '\\t' : ch === '\r' ? '\\r' : ''
+      );
+      raw = JSON.parse(jsonStr);
+    }
+
+    // Transform the Master Script Generator output into the IdeaDeepDive shape
+    const shotList = Array.isArray(raw.masterScript)
+      ? raw.masterScript.map((phase: { phase?: string; time?: string; visualDirection?: string; textOverlay?: string; voiceover?: string }) => ({
+          shot: phase.phase || 'Shot',
+          description: [
+            phase.visualDirection,
+            phase.textOverlay ? `Text overlay: ${phase.textOverlay}` : '',
+            phase.voiceover ? `VO: "${phase.voiceover}"` : '',
+          ].filter(Boolean).join('\n'),
+          duration: phase.time || '',
+        }))
+      : raw.shotList || [];
+
+    const hooks = Array.isArray(raw.hookOptions)
+      ? raw.hookOptions.map((h: { type?: string; text?: string; tier?: string }) => ({
+          type: h.type || 'hook',
+          text: h.text || '',
+          tier: h.tier,
+        }))
+      : raw.hooks || [];
+
+    const script = typeof raw.script === 'string'
+      ? raw.script
+      : Array.isArray(raw.masterScript)
+        ? raw.masterScript.map((p: { phase?: string; time?: string; voiceover?: string }) =>
+            `[${p.time || ''}] ${p.voiceover || ''}`
+          ).join('\n\n')
+        : '';
+
+    const result = {
+      shotList,
+      hooks,
+      script,
+      viralityScore: raw.viralityScore,
+      templateSelected: raw.templateSelected,
+      templateReason: raw.templateReason,
+      voiceoverWordCount: raw.voiceoverWordCount,
+      closeType: raw.closeType,
+      audioVibe: raw.audioVibe,
+      instagramCaption: raw.instagramCaption,
+      estimatedLength: raw.estimatedLength,
+      viralityChecklist: raw.viralityChecklist,
+      performanceNotes: raw.performanceNotes,
+    };
+
     return NextResponse.json(result);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to generate deep dive';
