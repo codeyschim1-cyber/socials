@@ -97,6 +97,23 @@ CLOSES — ALWAYS ONE OF THESE:
 - Save prompt: "Save for your next trip"
 - Tag a friend: "Tag who you'd bring"
 
+COMPETITOR-VALIDATED PATTERNS (from analysis of 23 top vintage creator videos, 170K+ likes):
+- Every video needs ONE "viral anchor piece" — the single item the audience will talk about. Outerwear (leather, fur, statement jackets) drives highest engagement across ALL vintage creators.
+- Authority transfer hooks are extremely powerful: "This is where [celebrity/brand] shops for vintage" — highest share potential in the discovery space.
+- Series format ("Part 1") creates open loops that drive follows. Test dedicated series.
+- "Where is this store?" is the #1 comment across ALL vintage creators — location withholding in the video (reveal in caption/comments) is a strategy.
+- Definitive list format with full addresses in caption is the #1 save-driving format in vintage content.
+- First-mover geographic advantage: being first to cover a specific store/region creates instant authority. Untapped markets: NJ, CT, upstate NY, Long Island.
+- Pricing controversy ("this store is overpriced") drives comment debate and algorithmic reach.
+- Pop culture references on finds ("this looks like Meg from Hercules") drive comments.
+
+COMPETITIVE ADVANTAGES over other vintage creators:
+- Scale content (warehouses, events) that smaller creators can't access
+- Stronger hook formula with data-backed superlatives
+- NYC insider authority with specific store knowledge
+- Production quality above most competitors
+- Male vintage fashion — fewer male vintage creators = differentiation opportunity
+
 VIRALITY CHECKLIST (must hit 4/5 before publishing):
 □ Hook delivers payload within first 4 seconds
 □ At least one extreme value claim (price, scale, or geography)

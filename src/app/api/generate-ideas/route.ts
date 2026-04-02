@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 import { CREATOR_VOICE_PROFILE } from '@/lib/creator-context';
+import { COMPETITOR_HOOK_LIBRARY, COMPETITOR_CONTENT_PATTERNS } from '@/lib/competitor-intelligence';
 
 async function fetchLinkContent(url: string): Promise<string> {
   try {
@@ -84,7 +85,11 @@ ${linkResults.map((r, i) => `[Source ${i + 1}: ${r.url}]\n${r.content}`).join('\
 
   const prompt = `${CREATOR_VOICE_PROFILE}
 
-You are a social media content strategist for this creator. Generate 5 creative content ideas based on the creator profile above.
+${COMPETITOR_HOOK_LIBRARY}
+
+${COMPETITOR_CONTENT_PATTERNS}
+
+You are a social media content strategist for this creator. Generate 5 creative content ideas based on the creator profile and competitor intelligence above. Use the proven hook formulas and content formats — never suggest generic hooks.
 
 Creator info:
 - Platforms: ${platforms || 'Instagram, TikTok, YouTube, Facebook'}

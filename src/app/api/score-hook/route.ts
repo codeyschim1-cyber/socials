@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 import { CREATOR_VOICE_PROFILE } from '@/lib/creator-context';
+import { COMPETITOR_HOOK_LIBRARY } from '@/lib/competitor-intelligence';
 
 export async function POST(req: NextRequest) {
   const { apiKey, hookText, contentType } = await req.json();
@@ -13,7 +14,9 @@ export async function POST(req: NextRequest) {
 
   const prompt = `${CREATOR_VOICE_PROFILE}
 
-You are a content performance analyst for this creator. Score the following hook using the data-backed Virality Matrix and Hook Ranking System.
+${COMPETITOR_HOOK_LIBRARY}
+
+You are a content performance analyst for this creator. Score the following hook using the data-backed Virality Matrix, Hook Ranking System, AND the competitor-proven hook library above.
 
 Hook text: "${hookText}"
 ${contentType ? `Content type: ${contentType}` : ''}

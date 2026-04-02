@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 import { CREATOR_VOICE_PROFILE, WORKED_SCRIPT_EXAMPLES } from '@/lib/creator-context';
+import { COMPETITOR_HOOK_LIBRARY, COMPETITOR_SCRIPT_TEMPLATES } from '@/lib/competitor-intelligence';
 
 async function fetchLinkContent(url: string): Promise<string> {
   try {
@@ -67,6 +68,10 @@ ${linkResults.map((r, i) => `[Source ${i + 1}: ${r.url}]\n${r.content}`).join('\
 You are a viral content script generator for this creator. You generate production-ready scripts following a strict 4-phase framework proven by data.
 
 ${WORKED_SCRIPT_EXAMPLES}
+
+${COMPETITOR_HOOK_LIBRARY}
+
+${COMPETITOR_SCRIPT_TEMPLATES}
 
 --- STRICT CONSTRAINTS ---
 

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import {
   ChevronDown, ChevronRight, Zap, Shield, Skull, Film,
-  Mic, Clock, BookOpen, TrendingUp, MessageSquare, FileText
+  Mic, Clock, BookOpen, TrendingUp, MessageSquare, FileText, Users, Target
 } from 'lucide-react';
 
 function CollapsibleSection({ title, icon: Icon, children, defaultOpen = false }: {
@@ -813,6 +813,210 @@ export function PlaybookDashboard() {
             <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-2">
               <p className="text-xs font-semibold text-zinc-800">Curated List</p>
               <p className="text-[10px] text-zinc-500">Jazzy, walking-pace rhythm</p>
+            </div>
+          </div>
+        </div>
+      </CollapsibleSection>
+
+      {/* ── Competitor Intelligence ── */}
+      <CollapsibleSection title="Competitor Hook Library — 8 Ranked Formulas" icon={Users}>
+        <p className="text-xs text-zinc-500 mb-3">From analysis of 23 top vintage creator videos (170K+ combined likes). Ranked by average engagement.</p>
+        <div className="space-y-3">
+          {[
+            { rank: 1, name: 'Authority / Definitive Claim', formula: '"The BEST [X] in [city/region]"', avgLikes: '25.3K', proof: '@bestdressed "THE vintage store in LA" — 42K likes', bestFor: 'Store reveals, location content', tier: 'S' as const },
+            { rank: 2, name: 'Secret / Gatekept Location', formula: '"A secret [X] hiding in [neighborhood]"', avgLikes: '22.1K', proof: '@thriftgods "secret warehouse nobody knows about" — 38K likes', bestFor: 'Hidden gems, unmarked stores', tier: 'S' as const },
+            { rank: 3, name: 'Scale Superlative', formula: '"The BIGGEST/LARGEST [X] in [region]"', avgLikes: '19.8K', proof: '@codey___ bulk warehouse — 71.9K likes', bestFor: 'Warehouses, multi-floor stores', tier: 'S' as const },
+            { rank: 4, name: 'Price Disruption / Extreme Value', formula: '"Everything is $[X]" / "Fill a bag for $[X]"', avgLikes: '16.4K', proof: '@codey___ fill-a-bag $10 — 14.8K likes', bestFor: 'Sales events, gamified pricing', tier: 'A' as const },
+            { rank: 5, name: 'Authority Transfer', formula: '"Where [celebrity/brand] shops for vintage"', avgLikes: '14.7K', proof: '@thriftsandfinds "where Bella Hadid thrifts" — 31K likes', bestFor: 'Celebrity-adjacent locations', tier: 'A' as const },
+            { rank: 6, name: 'Geographic Pilgrimage', formula: '"I drove [X] hours for this store"', avgLikes: '13.2K', proof: '@codey___ day-trip content 3.5x multiplier', bestFor: 'Out-of-city content, road trips', tier: 'A' as const },
+            { rank: 7, name: 'Inventory Superlative', formula: '"[X,000] pieces of [brand] under one roof"', avgLikes: '11.5K', proof: '@codey___ Ralph Lauren archive — 36.9K likes', bestFor: 'Brand archives, specialty stores', tier: 'A' as const },
+            { rank: 8, name: 'Personal Superlative', formula: '"The best haul of my LIFE"', avgLikes: '8.9K', proof: 'Multiple creators — emotional hook + reveal', bestFor: 'Haul content, big finds', tier: 'B' as const },
+          ].map(h => (
+            <div key={h.rank} className="bg-zinc-50 border border-zinc-200 rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs font-bold text-violet-600">#{h.rank}</span>
+                <span className="text-xs font-bold text-zinc-800">{h.name}</span>
+                <TierBadge tier={h.tier} />
+                <span className="ml-auto text-xs font-semibold text-emerald-600">{h.avgLikes} avg</span>
+              </div>
+              <p className="text-xs text-zinc-700 font-mono bg-white border border-zinc-100 rounded px-2 py-1 mb-1">{h.formula}</p>
+              <p className="text-[10px] text-zinc-500">{h.proof}</p>
+              <p className="text-[10px] text-violet-600">Best for: {h.bestFor}</p>
+            </div>
+          ))}
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Viral Anchor Pieces — What Drives Comments" icon={Target}>
+        <p className="text-xs text-zinc-500 mb-3">Every video needs ONE &ldquo;viral anchor piece&rdquo; — the single item the audience talks about. Ranked by comment volume.</p>
+        <div className="space-y-2">
+          {[
+            { rank: 1, type: 'Statement Outerwear', desc: 'Leather jackets, fur coats, vintage varsity — highest engagement across ALL vintage creators', engagement: 'Highest', color: 'bg-violet-100 border-violet-300' },
+            { rank: 2, type: 'Designer at Absurd Price', desc: '"Gucci bag for $45" — Value Disconnect trigger, drives saves and shares', engagement: 'Very High', color: 'bg-emerald-100 border-emerald-300' },
+            { rank: 3, type: 'Pop Culture Reference', desc: '"This looks like Meg from Hercules" — triggers nostalgic comments and debates', engagement: 'High', color: 'bg-amber-100 border-amber-300' },
+            { rank: 4, type: 'Rare/Grail Item', desc: 'Deadstock vintage, unreleased samples, one-of-one pieces — drives "where is this?" comments', engagement: 'High', color: 'bg-amber-100 border-amber-300' },
+            { rank: 5, type: 'Controversial Price', desc: '"Is this overpriced?" — pricing debate drives algorithm reach through comment volume', engagement: 'Moderate', color: 'bg-zinc-100 border-zinc-300' },
+          ].map(a => (
+            <div key={a.rank} className={`${a.color} border rounded-lg p-3`}>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs font-bold text-zinc-700">#{a.rank}</span>
+                <span className="text-xs font-bold text-zinc-800">{a.type}</span>
+                <span className="ml-auto text-[10px] font-semibold text-zinc-600">{a.engagement}</span>
+              </div>
+              <p className="text-xs text-zinc-600">{a.desc}</p>
+            </div>
+          ))}
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Save & Comment Driving Formats" icon={MessageSquare}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Top Save-Driving Formats</h3>
+            <div className="space-y-2">
+              {[
+                { format: 'Definitive List + Addresses', desc: '"Top 10 thrift stores in NYC" with full addresses in caption', impact: '#1 save driver' },
+                { format: 'Price Comparison Grid', desc: 'Side-by-side retail vs thrift prices on same items', impact: 'High saves' },
+                { format: 'Neighborhood Guide', desc: '"Complete thrift guide to [area]" — reference bookmark', impact: 'High saves' },
+                { format: 'Seasonal/Event Calendar', desc: '"Every flea market this month" — time-sensitive utility', impact: 'Moderate saves' },
+              ].map(f => (
+                <div key={f.format} className="bg-blue-50 border border-blue-200 rounded-lg p-2">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <p className="text-xs font-semibold text-zinc-800">{f.format}</p>
+                    <span className="ml-auto text-[10px] font-semibold text-blue-600">{f.impact}</span>
+                  </div>
+                  <p className="text-[10px] text-zinc-500">{f.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Top Comment-Driving Formats</h3>
+            <div className="space-y-2">
+              {[
+                { format: 'Location Withholding', desc: 'Show store but don\'t name it until caption/comments — drives "WHERE IS THIS?"', impact: '#1 comment driver' },
+                { format: 'Pricing Controversy', desc: '"This store is overpriced" — debate in comments drives reach', impact: 'High comments' },
+                { format: '"Which One?" Close', desc: 'Show 2-3 items, ask audience to pick — simple engagement', impact: 'Moderate comments' },
+              ].map(f => (
+                <div key={f.format} className="bg-orange-50 border border-orange-200 rounded-lg p-2">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <p className="text-xs font-semibold text-zinc-800">{f.format}</p>
+                    <span className="ml-auto text-[10px] font-semibold text-orange-600">{f.impact}</span>
+                  </div>
+                  <p className="text-[10px] text-zinc-500">{f.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Competitor Script Templates" icon={FileText}>
+        <p className="text-xs text-zinc-500 mb-3">5 proven templates adapted from top-performing competitor videos for @codey___&apos;s voice.</p>
+        <div className="space-y-3">
+          {[
+            { id: 'A', name: 'Hidden Treasure Discovery', trigger: 'Secret/unmarked store, unique inventory', hook: '"A SECRET [type] HIDING IN [neighborhood]"', structure: 'Mystery approach → door reveal → inventory explosion → hero item → location withhold', avgPerf: '22K+ likes' },
+            { id: 'B', name: 'Road Trip Superlative', trigger: 'Out-of-city location, massive scale', hook: '"THE [superlative] [type] IN [region]"', structure: 'Bold claim → journey/arrival → scale proof → rapid inventory → pilgrimage close', avgPerf: '25K+ likes' },
+            { id: 'C', name: 'Definitive NYC List', trigger: 'Multiple locations, guide format', hook: '"THE [number] BEST [type] IN NYC"', structure: 'Promise count → rapid location montage → best item per spot → "save this" CTA', avgPerf: '15K+ likes' },
+            { id: 'D', name: 'Authority Transfer', trigger: 'Celebrity/brand connection to a store', hook: '"WHERE [celebrity] SHOPS FOR VINTAGE"', structure: 'Celebrity name drop → store reveal → inventory proof → price shock → credibility close', avgPerf: '14K+ likes' },
+            { id: 'E', name: 'Personal Superlative Haul', trigger: 'Exceptional finds, emotional stakes', hook: '"THE BEST HAUL OF MY LIFE"', structure: 'Emotional claim → location context → rapid item reveals → crown jewel → cost reveal', avgPerf: '9K+ likes' },
+          ].map(t => (
+            <div key={t.id} className="bg-zinc-50 border border-zinc-200 rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs font-bold bg-violet-100 text-violet-700 px-2 py-0.5 rounded">Template {t.id}</span>
+                <span className="text-xs font-bold text-zinc-800">{t.name}</span>
+                <span className="ml-auto text-xs font-semibold text-emerald-600">{t.avgPerf}</span>
+              </div>
+              <p className="text-[10px] text-zinc-500 mb-1"><span className="font-semibold">Trigger:</span> {t.trigger}</p>
+              <p className="text-xs text-zinc-700 font-mono bg-white border border-zinc-100 rounded px-2 py-1 mb-1">{t.hook}</p>
+              <p className="text-[10px] text-zinc-500"><span className="font-semibold">Structure:</span> {t.structure}</p>
+            </div>
+          ))}
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Audio & Hashtag Strategy" icon={Mic}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Audio Strategy by Content Type</h3>
+            <div className="space-y-2">
+              {[
+                { type: 'Hidden Gem / Gatekept', audio: 'Lo-fi hip-hop, mysterious downtempo', energy: 'Low-medium', reason: 'Matches discovery/secret mood' },
+                { type: 'Epic Haul / Warehouse', audio: 'Uptempo hip-hop, triumphant beats', energy: 'High', reason: 'Matches scale and excitement' },
+                { type: 'Curated List / Tour', audio: 'Jazzy, walking-pace rhythm', energy: 'Medium', reason: 'Guides viewer through locations' },
+                { type: 'Price Disruption / Deal', audio: 'Energetic, percussive beats', energy: 'High', reason: 'Urgency and excitement' },
+              ].map(a => (
+                <div key={a.type} className="bg-zinc-50 border border-zinc-200 rounded-lg p-2">
+                  <p className="text-xs font-semibold text-zinc-800">{a.type}</p>
+                  <p className="text-[10px] text-zinc-600">{a.audio}</p>
+                  <p className="text-[10px] text-violet-600">Energy: {a.energy} — {a.reason}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Hashtag Strategy</h3>
+            <div className="space-y-2">
+              <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-2">
+                <p className="text-xs font-semibold text-zinc-800">Target: 15-25 per post</p>
+                <p className="text-[10px] text-zinc-500">Mix of niche + broad for discovery</p>
+              </div>
+              <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-2">
+                <p className="text-xs font-semibold text-zinc-800">Tier 1 — Core Niche (5-8)</p>
+                <p className="text-[10px] text-zinc-500">#vintagefashion #thrifting #vintageclothing #secondhand #thriftfinds</p>
+              </div>
+              <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-2">
+                <p className="text-xs font-semibold text-zinc-800">Tier 2 — Location (3-5)</p>
+                <p className="text-[10px] text-zinc-500">#nycvintage #nycthrift #brooklynthrift #[neighborhood] #[storename]</p>
+              </div>
+              <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-2">
+                <p className="text-xs font-semibold text-zinc-800">Tier 3 — Broad Discovery (5-8)</p>
+                <p className="text-[10px] text-zinc-500">#mensfashion #ootd #streetstyle #sustainablefashion #fashiontiktok</p>
+              </div>
+              <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-2">
+                <p className="text-xs font-semibold text-zinc-800">Tier 4 — Trending/Seasonal (2-4)</p>
+                <p className="text-[10px] text-zinc-500">#springfashion #fleamarket #weekendfinds — rotate based on timing</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Competitive Advantages & Untapped Markets" icon={TrendingUp}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Your Competitive Edge</h3>
+            <div className="space-y-2">
+              {[
+                { edge: 'Scale Content Access', desc: 'Warehouses and large events that smaller creators can\'t access or travel to' },
+                { edge: 'Data-Backed Hook Formula', desc: 'Superlatives backed by real performance data — not guessing' },
+                { edge: 'NYC Insider Authority', desc: 'Deep specific store knowledge that tourists and new creators lack' },
+                { edge: 'Production Quality', desc: 'Higher production value than most vintage competitors' },
+                { edge: 'Male Vintage Fashion', desc: 'Fewer male vintage creators = differentiation opportunity in a growing space' },
+              ].map(e => (
+                <div key={e.edge} className="bg-emerald-50 border border-emerald-200 rounded-lg p-2">
+                  <p className="text-xs font-semibold text-zinc-800">{e.edge}</p>
+                  <p className="text-[10px] text-zinc-500">{e.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Untapped Geographic Markets</h3>
+            <p className="text-[10px] text-zinc-500 mb-2">First-mover advantage: being first to cover a region creates instant authority.</p>
+            <div className="space-y-2">
+              {[
+                { region: 'New Jersey', note: 'Multiple warehouses and bulk spots, 30-60 min from NYC' },
+                { region: 'Connecticut', note: 'Estate sale goldmine, wealthy suburbs = designer finds' },
+                { region: 'Upstate New York', note: 'Day-trip narrative (3.5x engagement), barn sales, archives' },
+                { region: 'Long Island', note: 'Consignment shops, estate sales, untapped by NYC creators' },
+                { region: 'Philadelphia', note: 'Growing vintage scene, 90 min from NYC, bulk warehouses' },
+              ].map(r => (
+                <div key={r.region} className="bg-violet-50 border border-violet-200 rounded-lg p-2">
+                  <p className="text-xs font-semibold text-zinc-800">{r.region}</p>
+                  <p className="text-[10px] text-zinc-500">{r.note}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
