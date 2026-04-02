@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 import { CREATOR_VOICE_PROFILE, WORKED_SCRIPT_EXAMPLES } from '@/lib/creator-context';
-import { COMPETITOR_HOOK_LIBRARY, COMPETITOR_SCRIPT_TEMPLATES } from '@/lib/competitor-intelligence';
+import { COMPETITOR_HOOK_LIBRARY } from '@/lib/competitor-intelligence';
 
 async function fetchLinkContent(url: string): Promise<string> {
   try {
@@ -54,183 +54,87 @@ export async function POST(req: NextRequest) {
         return { url, content };
       })
     );
-    referenceLinkContext = `--- STORE / LOCATION RESEARCH (from reference links) ---
-CRITICAL: Use ONLY this information for factual details about this location. Do NOT fabricate details like number of floors, neighborhood, address, or what they sell. If info is not here, omit it.
+    referenceLinkContext = `\n--- STORE / LOCATION RESEARCH ---
+CRITICAL: Use ONLY this information for factual details. Do NOT fabricate details not found here.
 
 ${linkResults.map((r, i) => `[Source ${i + 1}: ${r.url}]\n${r.content}`).join('\n\n')}
 --- END STORE RESEARCH ---`;
   }
 
-  const prompt = `${CREATOR_VOICE_PROFILE}
-
---- MASTER SCRIPT GENERATOR ---
-
-You are a viral content script generator for this creator. You generate production-ready scripts following a strict 4-phase framework proven by data.
+  // System message with creator context (keeps user message shorter)
+  const systemPrompt = `${CREATOR_VOICE_PROFILE}
 
 ${WORKED_SCRIPT_EXAMPLES}
 
 ${COMPETITOR_HOOK_LIBRARY}
 
-${COMPETITOR_SCRIPT_TEMPLATES}
+You are a viral content script generator for this creator. Generate production-ready scripts following the strict 4-phase framework. Always respond with valid JSON only — no markdown, no code fences, no extra text.`;
 
---- STRICT CONSTRAINTS ---
-
-1. VOICEOVER WORD COUNT: 60-85 words. NO EXCEPTIONS. Count every word. If over 85, cut. If under 60, add specifics.
-2. VOICEOVER PACE: Moderate and steady. NOT rushed breathless delivery. Confident authority.
-3. NO LOGISTICS IN VOICEOVER: Addresses, hours, dates, parking info = TEXT OVERLAY ONLY. Never spoken.
-4. SPECIFICITY RULE: Every single sentence must contain at least one specific: a brand name, a price, a number, or a location name. Zero generic sentences allowed.
-5. "THE LIST" TECHNIQUE: When listing items, stack WITHOUT "and" until the final item. Example: "Ralph Lauren, Burberry, Versace, and vintage Levi's"
-6. VOCABULARY — APPROVED: "Massive", "Insane", "Unbelievable", "Hidden gem", "Literal dream", "True thrifting", "The best [X] in [city]"
-7. VOCABULARY — BANNED: "Hey guys", "Come with me", "Check this out" (as opener), "Vibes", "Aesthetic", "Cute", "Obsessed", "Make sure to like"
-8. 4-PHASE STRUCTURE (mandatory):
-   Phase 1 — HOOK (0:00-0:04): Bold text overlay + dynamic movement + core payload
-   Phase 2 — LOCATION DROP (0:04-0:09): Establish space, show scale, store name overlay
-   Phase 3 — INVENTORY MEAT (0:09-0:25): Rapid 1-2s cuts of items, brands, prices. "The List" technique. Prove the hook.
-   Phase 4 — INSIDER TIP (0:25-0:30+): Save-worthy tip, comment bait, or Spot Reveal
-
---- VIRALITY MATRIX (score before writing) ---
-Evaluate the content idea on 3 variables (1-5 each):
-1. SCALE: How visually massive is the location? (5=warehouse, 1=small boutique)
-2. GEOGRAPHY: Is it a "day trip" / pilgrimage? (5=hours away, 1=common NYC spot)
-3. VALUE DISCONNECT: How extreme is the price gap? (5=pay by pound, 1=standard retail)
-Total 12+ = high viral potential. Below 8 = needs a stronger angle.
-
---- CONTENT PERFORMANCE TIERS ---
-Tier 1 MEGA-VIRAL (20K-75K+ likes): Bulk Warehouse, Single-Brand Archive, Legendary Institution
-Tier 2 HIGH-ENGAGEMENT (10K-19K likes): Gamified Thrift, Definitive Claim
-Tier 3 BASELINE (1K-9K likes): High-End Designer, Furniture Focus, Ticketed Pop-Ups
-→ Always aim for Tier 1 framing. If naturally Tier 3, find a Tier 1 angle.
-
----
+  const userPrompt = `Generate a COMPLETE production-ready script package for:
 
 Content Idea: "${title}"
 Description: "${description}"
 Platform: ${platform || 'Instagram Reels'}
 Category: ${category || 'evergreen'}
 Creator niche: ${niche || 'vintage fashion, thrifting, menswear'}
-${creatorBio ? `Creator bio: ${creatorBio}` : ''}
-${referenceLinkContext}
+${creatorBio ? `Creator bio: ${creatorBio}` : ''}${referenceLinkContext}
 
-Generate a COMPLETE production-ready script package. Follow the worked examples above for style and format.
+CONSTRAINTS:
+- Voiceover: 60-85 words, moderate pace, no logistics spoken
+- Every sentence must have a specific (brand, price, number, location)
+- Use "The List" technique for stacking items
+- 4-phase structure: HOOK (0-4s), LOCATION DROP (4-9s), INVENTORY MEAT (9-25s), INSIDER TIP (25-30s+)
 
-REQUIRED OUTPUT (JSON):
-{
-  "viralityScore": {
-    "scale": 1-5,
-    "geography": 1-5,
-    "valueDisconnect": 1-5,
-    "total": 3-15,
-    "prediction": "Tier 1 / Tier 2 / Tier 3",
-    "angleAdvice": "How to push this toward Tier 1 if it isn't already"
-  },
-  "templateSelected": "hidden_gem | epic_haul | curated_list",
-  "templateReason": "Why this template fits",
-  "hookOptions": [
-    { "type": "scale_superlative", "text": "THE HOOK TEXT IN CAPS", "tier": "S | A | B" },
-    { "type": "value_price", "text": "THE HOOK TEXT IN CAPS", "tier": "S | A | B" },
-    { "type": "secret_hidden", "text": "THE HOOK TEXT IN CAPS", "tier": "S | A | B" }
-  ],
-  "masterScript": [
-    {
-      "phase": "Phase 1 — HOOK",
-      "time": "0:00-0:04",
-      "visualDirection": "Exactly what to film",
-      "textOverlay": "BOLD TEXT FOR SCREEN",
-      "voiceover": "Word-for-word voiceover line"
-    },
-    {
-      "phase": "Phase 2 — LOCATION DROP",
-      "time": "0:04-0:09",
-      "visualDirection": "Exactly what to film",
-      "textOverlay": "TEXT FOR SCREEN",
-      "voiceover": "Word-for-word voiceover line"
-    },
-    {
-      "phase": "Phase 3 — INVENTORY MEAT",
-      "time": "0:09-0:25",
-      "visualDirection": "Exactly what to film (rapid cuts)",
-      "textOverlay": "BRAND/PRICE OVERLAYS",
-      "voiceover": "Word-for-word voiceover using The List technique"
-    },
-    {
-      "phase": "Phase 4 — INSIDER TIP",
-      "time": "0:25-0:30+",
-      "visualDirection": "Final shots",
-      "textOverlay": "📍 [ADDRESS IN TEXT ONLY]",
-      "voiceover": "Close line"
-    }
-  ],
-  "voiceoverWordCount": 60-85,
-  "closeType": "comment_bait | spot_reveal | fast_directive | strong_visual | tag_a_friend | save_prompt",
-  "audioVibe": "Genre and energy description for music selection",
-  "instagramCaption": "Hook line.\\n\\nLocation + inventory tease.\\n\\nInsider tip or detail.\\n\\n·\\n·\\n·\\n\\n#hashtag1 #hashtag2 ... (15-25 relevant hashtags)",
-  "estimatedLength": "Xs",
-  "viralityChecklist": {
-    "hookPayloadBy4s": true/false,
-    "extremeValueClaim": true/false,
-    "voiceoverUnder85Words": true/false,
-    "noLogisticsInVO": true/false,
-    "approvedCloseType": true/false,
-    "passCount": "X/5"
-  },
-  "performanceNotes": ["Specific notes about which rules and triggers were applied"]
-}
-
-Respond ONLY with the JSON object, no other text.`;
+Return a JSON object with these exact keys:
+- "viralityScore": {"scale": number 1-5, "geography": number 1-5, "valueDisconnect": number 1-5, "total": number 3-15, "prediction": string, "angleAdvice": string}
+- "templateSelected": string (hidden_gem, epic_haul, or curated_list)
+- "templateReason": string
+- "hookOptions": array of 3 objects with {"type": string, "text": string, "tier": string}
+- "masterScript": array of 4 phase objects with {"phase": string, "time": string, "visualDirection": string, "textOverlay": string, "voiceover": string}
+- "voiceoverWordCount": number
+- "closeType": string
+- "audioVibe": string
+- "instagramCaption": string with hashtags
+- "estimatedLength": string like "28s"
+- "viralityChecklist": {"hookPayloadBy4s": boolean, "extremeValueClaim": boolean, "voiceoverUnder85Words": boolean, "noLogisticsInVO": boolean, "approvedCloseType": boolean, "passCount": string}
+- "performanceNotes": array of strings`;
 
   try {
     const message = await client.messages.create({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 8000,
-      messages: [{ role: 'user', content: prompt }],
+      system: systemPrompt,
+      messages: [
+        { role: 'user', content: userPrompt },
+        { role: 'assistant', content: '{' },
+      ],
     });
 
-    const text = message.content[0].type === 'text' ? message.content[0].text : '';
+    const text = '{' + (message.content[0].type === 'text' ? message.content[0].text : '');
 
-    // Strip markdown code fences if present
+    // Strip any trailing text after the JSON object
     let cleaned = text.replace(/```(?:json)?\s*/gi, '').replace(/```\s*/g, '');
-    // Extract the outermost JSON object
     const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500 });
     }
 
     let jsonStr = jsonMatch[0];
+    // Fix trailing commas
+    jsonStr = jsonStr.replace(/,\s*([}\]])/g, '$1');
 
-    function tryParse(s: string) {
-      try { return JSON.parse(s); } catch { return null; }
-    }
-
-    let raw = tryParse(jsonStr);
-
-    if (!raw) {
-      // Fix trailing commas before } or ]
-      jsonStr = jsonStr.replace(/,\s*([}\]])/g, '$1');
-      // Fix single-quoted strings
-      jsonStr = jsonStr.replace(/:\s*'([^']*)'/g, ': "$1"');
-      raw = tryParse(jsonStr);
-    }
-
-    if (!raw) {
-      // Fix control characters inside strings
+    let raw;
+    try {
+      raw = JSON.parse(jsonStr);
+    } catch {
+      // Strip control characters and retry
       jsonStr = jsonStr.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
-      raw = tryParse(jsonStr);
-    }
-
-    if (!raw) {
-      // Last resort: try to fix unquoted keys and values
-      jsonStr = jsonStr
-        .replace(/([{,]\s*)(\w+)\s*:/g, '$1"$2":')
-        .replace(/:\s*([^"{\[\d\s\-][^,}\]]*)/g, (match, val) => {
-          const trimmed = val.trim();
-          if (trimmed === 'true' || trimmed === 'false' || trimmed === 'null') return match;
-          return `: "${trimmed}"`;
-        });
-      raw = tryParse(jsonStr);
-    }
-
-    if (!raw) {
-      return NextResponse.json({ error: 'Failed to parse AI response — invalid JSON returned' }, { status: 500 });
+      try {
+        raw = JSON.parse(jsonStr);
+      } catch (e) {
+        const parseErr = e instanceof Error ? e.message : 'unknown';
+        return NextResponse.json({ error: `JSON parse failed: ${parseErr}` }, { status: 500 });
+      }
     }
 
     // Transform the Master Script Generator output into the IdeaDeepDive shape
@@ -280,7 +184,7 @@ Respond ONLY with the JSON object, no other text.`;
 
     return NextResponse.json(result);
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Failed to generate deep dive';
-    return NextResponse.json({ error: message }, { status: 500 });
+    const msg = error instanceof Error ? error.message : 'Failed to generate deep dive';
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
