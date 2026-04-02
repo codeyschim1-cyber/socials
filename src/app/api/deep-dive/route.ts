@@ -123,18 +123,33 @@ Return a JSON object with these exact keys:
     // Fix trailing commas
     jsonStr = jsonStr.replace(/,\s*([}\]])/g, '$1');
 
-    let raw;
-    try {
-      raw = JSON.parse(jsonStr);
-    } catch {
-      // Strip control characters and retry
+    function tryParse(s: string) {
+      try { return JSON.parse(s); } catch { return null; }
+    }
+
+    let raw = tryParse(jsonStr);
+
+    if (!raw) {
+      // Fix unescaped newlines/tabs inside JSON string values
+      jsonStr = jsonStr.replace(/"((?:[^"\\]|\\.)*)"/g, (match, content) => {
+        const fixed = (content as string)
+          .replace(/\n/g, '\\n')
+          .replace(/\r/g, '\\r')
+          .replace(/\t/g, '\\t');
+        return `"${fixed}"`;
+      });
+      jsonStr = jsonStr.replace(/,\s*([}\]])/g, '$1');
+      raw = tryParse(jsonStr);
+    }
+
+    if (!raw) {
+      // Strip remaining control characters
       jsonStr = jsonStr.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
-      try {
-        raw = JSON.parse(jsonStr);
-      } catch (e) {
-        const parseErr = e instanceof Error ? e.message : 'unknown';
-        return NextResponse.json({ error: `JSON parse failed: ${parseErr}` }, { status: 500 });
-      }
+      raw = tryParse(jsonStr);
+    }
+
+    if (!raw) {
+      return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500 });
     }
 
     // Transform the Master Script Generator output into the IdeaDeepDive shape
@@ -161,9 +176,9 @@ Return a JSON object with these exact keys:
     const script = typeof raw.script === 'string'
       ? raw.script
       : Array.isArray(raw.masterScript)
-        ? raw.masterScript.map((p: { phase?: string; time?: string; voiceover?: string }) =>
-            `[${p.time || ''}] ${p.voiceover || ''}`
-          ).join('\n\n')
+        ? raw.masterScript.map((p: { phase?: string; time?: string; visualDirection?: string; textOverlay?: string; voiceover?: string }) =>
+            `═══ ${p.phase || 'Phase'} [${p.time || ''}] ═══\n\n🎬 VISUAL: ${p.visualDirection || ''}\n\n📝 TEXT OVERLAY: ${p.textOverlay || ''}\n\n🎙️ VOICEOVER:\n"${p.voiceover || ''}"`
+          ).join('\n\n─────────────────────────────\n\n')
         : '';
 
     const result = {

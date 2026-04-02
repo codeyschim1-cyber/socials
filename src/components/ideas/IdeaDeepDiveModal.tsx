@@ -323,23 +323,119 @@ export function IdeaDeepDiveModal({ idea, isOpen, onClose, referenceLinks }: Ide
 
           {/* Script */}
           {activeTab === 'script' && (
-            <div>
-              <div className="flex justify-end mb-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => copyText(deepDive.script, 'script')}
-                >
-                  {copiedIndex === 'script' ? (
-                    <><Check className="w-3.5 h-3.5 text-green-600" /> Copied</>
-                  ) : (
-                    <><Copy className="w-3.5 h-3.5" /> Copy Script</>
-                  )}
-                </Button>
-              </div>
-              <div className="bg-surface-elevated rounded-lg p-4 border border-zinc-300">
-                <p className="text-xs text-zinc-700 whitespace-pre-wrap leading-relaxed">{deepDive.script}</p>
-              </div>
+            <div className="space-y-4">
+              {/* Full script by phase — structured view */}
+              {deepDive.shotList.length > 0 && (
+                <div className="space-y-3">
+                  {deepDive.shotList.map((shot, i) => {
+                    const lines = shot.description.split('\n');
+                    const visual = lines.find(l => l.startsWith('Text overlay:') === false && l.startsWith('VO:') === false) || '';
+                    const overlay = lines.find(l => l.startsWith('Text overlay:'))?.replace('Text overlay: ', '') || '';
+                    const vo = lines.find(l => l.startsWith('VO:'))?.replace('VO: ', '').replace(/^"|"$/g, '') || '';
+
+                    return (
+                      <Card key={i} className="py-3 px-4 border-l-4 border-l-violet-500">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="text-xs font-bold text-violet-700 uppercase tracking-wider">{shot.shot}</h4>
+                          <span className="text-[10px] font-medium text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded">{shot.duration}</span>
+                        </div>
+
+                        {visual && (
+                          <div className="mb-2">
+                            <span className="text-[10px] font-semibold text-zinc-400 uppercase">Visual Direction</span>
+                            <p className="text-xs text-zinc-700 mt-0.5">{visual}</p>
+                          </div>
+                        )}
+
+                        {overlay && (
+                          <div className="mb-2">
+                            <span className="text-[10px] font-semibold text-zinc-400 uppercase">Text Overlay</span>
+                            <p className="text-xs font-bold text-zinc-900 mt-0.5 bg-amber-50 border border-amber-200 rounded px-2 py-1 inline-block">{overlay}</p>
+                          </div>
+                        )}
+
+                        {vo && (
+                          <div>
+                            <span className="text-[10px] font-semibold text-zinc-400 uppercase">Voiceover</span>
+                            <div className="flex items-start justify-between gap-2 mt-0.5">
+                              <p className="text-xs text-zinc-800 italic bg-violet-50 border border-violet-200 rounded px-2 py-1.5 flex-1">&ldquo;{vo}&rdquo;</p>
+                              <button
+                                onClick={() => copyText(vo, `vo-${i}`)}
+                                className="p-1 text-zinc-400 hover:text-violet-600 transition-colors shrink-0 mt-0.5"
+                              >
+                                {copiedIndex === `vo-${i}` ? <Check className="w-3 h-3 text-green-600" /> : <Copy className="w-3 h-3" />}
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Full voiceover script — copy all */}
+              <Card className="py-3 px-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Full Voiceover Script</h4>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const voScript = deepDive.shotList
+                        .map(s => {
+                          const voLine = s.description.split('\n').find(l => l.startsWith('VO:'));
+                          return voLine?.replace('VO: ', '').replace(/^"|"$/g, '') || '';
+                        })
+                        .filter(Boolean)
+                        .join(' ');
+                      copyText(voScript, 'full-vo');
+                    }}
+                  >
+                    {copiedIndex === 'full-vo' ? (
+                      <><Check className="w-3.5 h-3.5 text-green-600" /> Copied</>
+                    ) : (
+                      <><Copy className="w-3.5 h-3.5" /> Copy VO</>
+                    )}
+                  </Button>
+                </div>
+                <p className="text-xs text-zinc-700 leading-relaxed bg-zinc-50 rounded-lg p-3">
+                  {deepDive.shotList
+                    .map(s => {
+                      const voLine = s.description.split('\n').find(l => l.startsWith('VO:'));
+                      return voLine?.replace('VO: ', '').replace(/^"|"$/g, '') || '';
+                    })
+                    .filter(Boolean)
+                    .join(' ')}
+                </p>
+                {deepDive.voiceoverWordCount && (
+                  <p className="text-[10px] text-zinc-400 mt-1">{deepDive.voiceoverWordCount} words</p>
+                )}
+              </Card>
+
+              {/* Audio direction */}
+              {deepDive.audioVibe && (
+                <Card className="py-2.5 px-4">
+                  <span className="text-[10px] font-semibold text-zinc-400 uppercase">Music Direction</span>
+                  <p className="text-xs text-zinc-700 mt-0.5">{deepDive.audioVibe}</p>
+                </Card>
+              )}
+
+              {/* Caption */}
+              {deepDive.instagramCaption && (
+                <Card className="py-3 px-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Instagram Caption</h4>
+                    <button
+                      onClick={() => copyText(deepDive.instagramCaption || '', 'caption-script')}
+                      className="p-1 text-zinc-400 hover:text-violet-600 transition-colors"
+                    >
+                      {copiedIndex === 'caption-script' ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                  <p className="text-xs text-zinc-700 whitespace-pre-wrap leading-relaxed bg-zinc-50 rounded-lg p-3">{deepDive.instagramCaption}</p>
+                </Card>
+              )}
             </div>
           )}
         </div>
