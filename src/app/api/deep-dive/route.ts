@@ -186,27 +186,51 @@ Respond ONLY with the JSON object, no other text.`;
     });
 
     const text = message.content[0].type === 'text' ? message.content[0].text : '';
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
+
+    // Strip markdown code fences if present
+    let cleaned = text.replace(/```(?:json)?\s*/gi, '').replace(/```\s*/g, '');
+    // Extract the outermost JSON object
+    const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500 });
     }
 
-    // Attempt to fix common JSON issues before parsing
     let jsonStr = jsonMatch[0];
-    // Fix unquoted property values like true/false that might be malformed
-    jsonStr = jsonStr.replace(/:\s*'([^']*)'/g, ': "$1"');
-    // Fix trailing commas before } or ]
-    jsonStr = jsonStr.replace(/,\s*([}\]])/g, '$1');
 
-    let raw;
-    try {
-      raw = JSON.parse(jsonStr);
-    } catch {
-      // If still fails, try more aggressive cleanup
-      jsonStr = jsonStr.replace(/[\x00-\x1F\x7F]/g, (ch) =>
-        ch === '\n' ? '\\n' : ch === '\t' ? '\\t' : ch === '\r' ? '\\r' : ''
-      );
-      raw = JSON.parse(jsonStr);
+    function tryParse(s: string) {
+      try { return JSON.parse(s); } catch { return null; }
+    }
+
+    let raw = tryParse(jsonStr);
+
+    if (!raw) {
+      // Fix trailing commas before } or ]
+      jsonStr = jsonStr.replace(/,\s*([}\]])/g, '$1');
+      // Fix single-quoted strings
+      jsonStr = jsonStr.replace(/:\s*'([^']*)'/g, ': "$1"');
+      raw = tryParse(jsonStr);
+    }
+
+    if (!raw) {
+      // Fix control characters inside strings
+      jsonStr = jsonStr.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+      raw = tryParse(jsonStr);
+    }
+
+    if (!raw) {
+      // Last resort: try to fix unquoted keys and values
+      jsonStr = jsonStr
+        .replace(/([{,]\s*)(\w+)\s*:/g, '$1"$2":')
+        .replace(/:\s*([^"{\[\d\s\-][^,}\]]*)/g, (match, val) => {
+          const trimmed = val.trim();
+          if (trimmed === 'true' || trimmed === 'false' || trimmed === 'null') return match;
+          return `: "${trimmed}"`;
+        });
+      raw = tryParse(jsonStr);
+    }
+
+    if (!raw) {
+      return NextResponse.json({ error: 'Failed to parse AI response — invalid JSON returned' }, { status: 500 });
     }
 
     // Transform the Master Script Generator output into the IdeaDeepDive shape

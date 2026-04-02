@@ -90,12 +90,18 @@ Respond ONLY with the JSON object, no other text.`;
     });
 
     const text = message.content[0].type === 'text' ? message.content[0].text : '';
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    const cleaned = text.replace(/```(?:json)?\s*/gi, '').replace(/```\s*/g, '');
+    const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500 });
     }
 
-    const result = JSON.parse(jsonMatch[0]);
+    let jsonStr = jsonMatch[0].replace(/,\s*([}\]])/g, '$1');
+    let result;
+    try { result = JSON.parse(jsonStr); } catch {
+      jsonStr = jsonStr.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+      result = JSON.parse(jsonStr);
+    }
     return NextResponse.json(result);
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'Failed to score hook';

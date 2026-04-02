@@ -132,13 +132,19 @@ Respond ONLY with the JSON array, no other text.`;
 
     const text = message.content[0].type === 'text' ? message.content[0].text : '';
 
-    // Parse the JSON from the response
-    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    // Strip markdown code fences and extract JSON array
+    const cleaned = text.replace(/```(?:json)?\s*/gi, '').replace(/```\s*/g, '');
+    const jsonMatch = cleaned.match(/\[[\s\S]*\]/);
     if (!jsonMatch) {
       return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500 });
     }
 
-    const ideas = JSON.parse(jsonMatch[0]);
+    let jsonStr = jsonMatch[0].replace(/,\s*([}\]])/g, '$1');
+    let ideas;
+    try { ideas = JSON.parse(jsonStr); } catch {
+      jsonStr = jsonStr.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+      ideas = JSON.parse(jsonStr);
+    }
     return NextResponse.json({ ideas });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to generate ideas';
