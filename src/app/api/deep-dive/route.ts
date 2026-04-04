@@ -110,13 +110,46 @@ Return a JSON object with these exact keys:
       ],
     });
 
-    const text = '{' + (message.content[0].type === 'text' ? message.content[0].text : '');
+    const rawContent = message.content[0]?.type === 'text' ? message.content[0].text : '';
+    if (!rawContent || rawContent.trim().length === 0) {
+      return NextResponse.json({ error: `AI returned empty response (stop: ${message.stop_reason})` }, { status: 500 });
+    }
+    const text = '{' + rawContent;
+    const wasTruncated = message.stop_reason === 'max_tokens';
 
-    // Strip any trailing text after the JSON object
+    // Strip any markdown code fences
     let cleaned = text.replace(/```(?:json)?\s*/gi, '').replace(/```\s*/g, '');
+
+    // If truncated, try to close the JSON by balancing braces/brackets
+    if (wasTruncated) {
+      // Remove any trailing partial string (cut off mid-value)
+      cleaned = cleaned.replace(/,\s*"[^"]*$/, '');  // trailing partial key
+      cleaned = cleaned.replace(/:\s*"[^"]*$/, ': ""'); // trailing partial value
+      cleaned = cleaned.replace(/,\s*$/, '');
+      // Count open braces/brackets and close them
+      let openBraces = 0, openBrackets = 0;
+      let inString = false, escaped = false;
+      for (const ch of cleaned) {
+        if (escaped) { escaped = false; continue; }
+        if (ch === '\\' && inString) { escaped = true; continue; }
+        if (ch === '"') { inString = !inString; continue; }
+        if (inString) continue;
+        if (ch === '{') openBraces++;
+        if (ch === '}') openBraces--;
+        if (ch === '[') openBrackets++;
+        if (ch === ']') openBrackets--;
+      }
+      // Remove trailing comma before we close
+      cleaned = cleaned.replace(/,\s*$/, '');
+      for (let i = 0; i < openBrackets; i++) cleaned += ']';
+      for (let i = 0; i < openBraces; i++) cleaned += '}';
+    }
+
     const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500 });
+      return NextResponse.json({
+        error: `Failed to parse AI response (truncated: ${wasTruncated}, length: ${cleaned.length})`
+      }, { status: 500 });
     }
 
     let jsonStr = jsonMatch[0];
@@ -143,7 +176,6 @@ Return a JSON object with these exact keys:
     }
 
     if (!raw) {
-      // Strip remaining control characters
       jsonStr = jsonStr.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
       raw = tryParse(jsonStr);
     }
@@ -198,8 +230,50 @@ Return a JSON object with these exact keys:
     };
 
     return NextResponse.json(result);
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : 'Failed to generate deep dive';
+  } catch (firstError: unknown) {
+    // Retry with simplified prompt if first attempt fails
+    try {
+      const retryMsg = await client.messages.create({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4000,
+        messages: [
+          { role: 'user', content: `You are a viral content script generator for a vintage/thrift content creator (@codey___ on Instagram, 85K followers). Generate a production script for: "${title}" — ${description}. Platform: ${platform || 'Instagram Reels'}.
+
+Return ONLY valid JSON with these keys:
+{"hookOptions":[{"type":"string","text":"HOOK TEXT","tier":"S or A or B"}],"masterScript":[{"phase":"Phase 1 — HOOK","time":"0:00-0:04","visualDirection":"what to film","textOverlay":"TEXT FOR SCREEN","voiceover":"word for word line"},{"phase":"Phase 2 — LOCATION DROP","time":"0:04-0:09","visualDirection":"what to film","textOverlay":"text","voiceover":"line"},{"phase":"Phase 3 — INVENTORY MEAT","time":"0:09-0:25","visualDirection":"rapid cuts","textOverlay":"brands/prices","voiceover":"list technique line"},{"phase":"Phase 4 — INSIDER TIP","time":"0:25-0:30","visualDirection":"final shots","textOverlay":"address","voiceover":"close line"}],"audioVibe":"genre description","estimatedLength":"30s"}` },
+          { role: 'assistant', content: '{' },
+        ],
+      });
+
+      const retryText = '{' + (retryMsg.content[0]?.type === 'text' ? retryMsg.content[0].text : '');
+      const retryClean = retryText.replace(/```(?:json)?\s*/gi, '').replace(/```\s*/g, '');
+      let retryStr = retryClean.replace(/,\s*([}\]])/g, '$1');
+      // Fix newlines in strings
+      retryStr = retryStr.replace(/"((?:[^"\\]|\\.)*)"/g, (match, content) => {
+        return `"${(content as string).replace(/\n/g, '\\n').replace(/\r/g, '\\r')}"`;
+      });
+      const retryMatch = retryStr.match(/\{[\s\S]*\}/);
+      if (retryMatch) {
+        const retryRaw = JSON.parse(retryMatch[0]);
+        const shotList = Array.isArray(retryRaw.masterScript)
+          ? retryRaw.masterScript.map((p: { phase?: string; time?: string; visualDirection?: string; textOverlay?: string; voiceover?: string }) => ({
+              shot: p.phase || 'Shot', duration: p.time || '',
+              description: [p.visualDirection, p.textOverlay ? `Text overlay: ${p.textOverlay}` : '', p.voiceover ? `VO: "${p.voiceover}"` : ''].filter(Boolean).join('\n'),
+            }))
+          : [];
+        const hooks = Array.isArray(retryRaw.hookOptions)
+          ? retryRaw.hookOptions.map((h: { type?: string; text?: string; tier?: string }) => ({ type: h.type || 'hook', text: h.text || '', tier: h.tier }))
+          : [];
+        const script = Array.isArray(retryRaw.masterScript)
+          ? retryRaw.masterScript.map((p: { phase?: string; time?: string; visualDirection?: string; textOverlay?: string; voiceover?: string }) =>
+              `═══ ${p.phase || 'Phase'} [${p.time || ''}] ═══\n\n🎬 VISUAL: ${p.visualDirection || ''}\n\n📝 TEXT OVERLAY: ${p.textOverlay || ''}\n\n🎙️ VOICEOVER:\n"${p.voiceover || ''}"`
+            ).join('\n\n─────────────────────────────\n\n')
+          : '';
+        return NextResponse.json({ shotList, hooks, script, audioVibe: retryRaw.audioVibe, estimatedLength: retryRaw.estimatedLength });
+      }
+    } catch { /* retry also failed */ }
+
+    const msg = firstError instanceof Error ? firstError.message : 'Failed to generate deep dive';
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
